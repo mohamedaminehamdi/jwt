@@ -43,6 +43,11 @@ app.use(errorHandlerMiddleware);
 const port = process.env.PORT || 3000;
 
 const start = async () => {
+  const missing = ['MONGO_URI', 'JWT_SECRET'].filter((name) => !process.env[name]);
+  if (missing.length) {
+    console.error(`Missing environment variables: ${missing.join(', ')}`);
+    process.exit(1);
+  }
   try {
     await connectDB(process.env.MONGO_URI);
     app.listen(port, () =>
