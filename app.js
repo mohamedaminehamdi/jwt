@@ -2,6 +2,7 @@ require('dotenv').config();
 require('express-async-errors');
 
 const express = require('express');
+const mongoose = require('mongoose');
 const helmet = require('helmet');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
@@ -50,9 +51,21 @@ const start = async () => {
   }
   try {
     await connectDB(process.env.MONGO_URI);
-    app.listen(port, () =>
+    const server = app.listen(port, () =>
       console.log(`Server is listening on port ${port}...`)
     );
+
+    // finish in-flight requests, then close the db (docker stop sends SIGTERM)
+    const shutdown = (signal) => {
+      console.log(`${signal} received, shutting down...`);
+      server.close(async () => {
+        await mongoose.disconnect();
+        process.exit(0);
+      });
+      setTimeout(() => process.exit(1), 10000).unref();
+    };
+    process.once('SIGTERM', shutdown);
+    process.once('SIGINT', shutdown);
   } catch (error) {
     console.log(error);
     process.exit(1);
