@@ -5,10 +5,10 @@ const { startServer, stopServer, api } = require('./helpers')
 before(startServer)
 after(stopServer)
 
-test('GET /health responds ok', async () => {
+test('GET /health reports the database connection', async () => {
   const res = await api('GET', '/health')
   assert.strictEqual(res.status, 200)
-  assert.deepStrictEqual(res.body, { status: 'ok' })
+  assert.deepStrictEqual(res.body, { status: 'ok', db: 'connected' })
 })
 
 test('unknown routes return a JSON 404', async () => {

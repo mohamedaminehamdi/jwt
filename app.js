@@ -34,7 +34,13 @@ app.use(express.static('./public'));
 app.use(express.json({ limit: '10kb' }));
 
 app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(openapi));
-app.get('/api/v1/health', (req, res) => res.json({ status: 'ok' }));
+app.get('/api/v1/health', (req, res) => {
+  const connected = mongoose.connection.readyState === 1;
+  res.status(connected ? 200 : 503).json({
+    status: connected ? 'ok' : 'error',
+    db: connected ? 'connected' : 'disconnected',
+  });
+});
 app.use('/api/v1/auth', authLimiter, authRouter);
 app.use('/api/v1/jobs', authenticateUser, jobsRouter);
 
