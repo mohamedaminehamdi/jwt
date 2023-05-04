@@ -16,3 +16,14 @@ test('unknown routes return a JSON 404', async () => {
   assert.strictEqual(res.status, 404)
   assert.strictEqual(res.body.msg, 'Route does not exist')
 })
+
+test('every response carries a request id', async () => {
+  const generated = await api('GET', '/health')
+  assert.match(generated.headers.get('x-request-id'), /^[0-9a-f-]{36}$/)
+
+  const echoed = await api('GET', '/health', { headers: { 'X-Request-Id': 'trace-42' } })
+  assert.strictEqual(echoed.headers.get('x-request-id'), 'trace-42')
+
+  const unsafe = await api('GET', '/health', { headers: { 'X-Request-Id': 'bad id <script>' } })
+  assert.notStrictEqual(unsafe.headers.get('x-request-id'), 'bad id <script>')
+})

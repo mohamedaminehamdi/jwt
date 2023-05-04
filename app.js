@@ -11,6 +11,7 @@ const openapi = require('./docs/openapi.json');
 const app = express();
 
 const connectDB = require('./db/connect');
+const requestId = require('./middleware/request-id');
 const authenticateUser = require('./middleware/authentication');
 const authRouter = require('./routes/auth');
 const jobsRouter = require('./routes/jobs');
@@ -28,6 +29,7 @@ const authLimiter = rateLimit({
 });
 
 // middleware
+app.use(requestId);
 app.use(helmet());
 app.use(cors());
 app.use(express.static('./public'));
