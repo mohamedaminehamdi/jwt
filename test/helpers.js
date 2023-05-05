@@ -1,3 +1,4 @@
+process.env.NODE_ENV ||= 'test'
 process.env.JWT_SECRET ||= 'test-secret'
 process.env.JWT_LIFETIME ||= '1h'
 

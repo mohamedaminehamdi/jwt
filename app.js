@@ -4,6 +4,7 @@ require('express-async-errors');
 const express = require('express');
 const mongoose = require('mongoose');
 const helmet = require('helmet');
+const morgan = require('morgan');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 const swaggerUI = require('swagger-ui-express');
@@ -30,6 +31,12 @@ const authLimiter = rateLimit({
 
 // middleware
 app.use(requestId);
+morgan.token('id', (req) => req.id);
+app.use(
+  morgan(':id :method :url :status :res[content-length] - :response-time ms', {
+    skip: () => process.env.NODE_ENV === 'test',
+  })
+);
 app.use(helmet());
 app.use(cors());
 app.use(express.static('./public'));
