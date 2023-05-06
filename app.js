@@ -3,6 +3,7 @@ require('express-async-errors');
 
 const express = require('express');
 const mongoose = require('mongoose');
+const compression = require('compression');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const cors = require('cors');
@@ -38,6 +39,7 @@ app.use(
   })
 );
 app.use(helmet());
+app.use(compression());
 app.use(cors());
 app.use(express.static('./public'));
 app.use(express.json({ limit: '10kb' }));
