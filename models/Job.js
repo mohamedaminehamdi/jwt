@@ -38,4 +38,8 @@ const JobSchema = new mongoose.Schema(
   { timestamps: true }
 )
 
+// every job query is scoped to one user, usually sorted by date or filtered by status
+JobSchema.index({ createdBy: 1, createdAt: -1 })
+JobSchema.index({ createdBy: 1, status: 1 })
+
 module.exports = mongoose.model('Job', JobSchema)
