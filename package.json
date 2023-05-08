@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node app.js",
     "dev": "nodemon app.js",
+    "lint": "eslint .",
     "test": "node --test test/*.test.js"
   },
   "keywords": [],
@@ -27,6 +28,7 @@
     "swagger-ui-express": "^4.6.3"
   },
   "devDependencies": {
+    "eslint": "^8.40.0",
     "nodemon": "^2.0.22"
   },
   "engines": {

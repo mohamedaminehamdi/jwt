@@ -1,0 +1,14 @@
+{
+  "root": true,
+  "extends": "eslint:recommended",
+  "env": { "node": true, "es2022": true },
+  "rules": {
+    "no-unused-vars": ["error", { "ignoreRestSiblings": true, "argsIgnorePattern": "^next$" }]
+  },
+  "overrides": [
+    {
+      "files": ["public/**/*.js"],
+      "env": { "browser": true, "node": false }
+    }
+  ]
+}
