@@ -54,4 +54,24 @@ const updateUser = async (req, res) => {
     .json({ user: userResponse(user), token: user.createJWT() })
 }
 
-module.exports = { register, login, getCurrentUser, updateUser }
+const changePassword = async (req, res) => {
+  const { currentPassword, newPassword } = req.body
+  if (typeof currentPassword !== 'string' || typeof newPassword !== 'string') {
+    throw new BadRequest('Please provide current and new password')
+  }
+  const user = await User.findById(req.user.userId)
+  if (!user) {
+    throw new NotFound('User no longer exists')
+  }
+  // 400, not 401: a wrong current password should not log the user out
+  if (!(await user.comparePassword(currentPassword))) {
+    throw new BadRequest('Current password is incorrect')
+  }
+  user.password = newPassword
+  await user.save()
+  res
+    .status(StatusCodes.OK)
+    .json({ user: userResponse(user), token: user.createJWT() })
+}
+
+module.exports = { register, login, getCurrentUser, updateUser, changePassword }
