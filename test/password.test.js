@@ -50,3 +50,17 @@ test('validates the new password', async () => {
   assert.strictEqual(res.status, 400)
   assert.match(res.body.msg, /password/)
 })
+
+test('tokens issued before a password change stop working', async () => {
+  const user = await registerUser()
+  const changed = await api('PATCH', '/auth/password', {
+    token: user.token,
+    body: { currentPassword: user.password, newPassword: 'newSecret456' },
+  })
+
+  const withOld = await api('GET', '/jobs', { token: user.token })
+  assert.strictEqual(withOld.status, 401)
+
+  const withNew = await api('GET', '/jobs', { token: changed.body.token })
+  assert.strictEqual(withNew.status, 200)
+})

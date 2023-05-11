@@ -28,17 +28,23 @@ const UserSchema = new mongoose.Schema({
     trim: true,
     maxlength: 50,
   },
+  // bumped on password change so tokens issued before it stop working
+  tokenVersion: {
+    type: Number,
+    default: 0,
+  },
 })
 
 UserSchema.pre('save', async function () {
   if (!this.isModified('password')) return
+  if (!this.isNew) this.tokenVersion += 1
   const salt = await bcrypt.genSalt(10)
   this.password = await bcrypt.hash(this.password, salt)
 })
 
 UserSchema.methods.createJWT = function () {
   return jwt.sign(
-    { userId: this._id, name: this.name },
+    { userId: this._id, name: this.name, v: this.tokenVersion },
     process.env.JWT_SECRET,
     { expiresIn: process.env.JWT_LIFETIME || '30d' }
   )

@@ -44,3 +44,11 @@ test('accepts a valid token', async () => {
   assert.strictEqual(res.status, 200)
   assert.deepStrictEqual(res.body, { jobs: [], totalJobs: 0, numOfPages: 0 })
 })
+
+test('rejects a valid signature for a user that does not exist', async () => {
+  const token = jwt.sign(
+    { userId: '64a1f0c2e4b0a1b2c3d4e5f6', name: 'Ghost' },
+    process.env.JWT_SECRET
+  )
+  expectRejected(await api('GET', '/jobs', { token }))
+})
