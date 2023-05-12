@@ -1,5 +1,6 @@
 const { StatusCodes } = require('http-status-codes')
 const User = require('../models/User')
+const Job = require('../models/Job')
 const { BadRequest, Unauthenticated, NotFound } = require('../errors')
 
 const userResponse = (user) => ({
@@ -74,4 +75,28 @@ const changePassword = async (req, res) => {
     .json({ user: userResponse(user), token: user.createJWT() })
 }
 
-module.exports = { register, login, getCurrentUser, updateUser, changePassword }
+const deleteUser = async (req, res) => {
+  const { password } = req.body
+  if (typeof password !== 'string') {
+    throw new BadRequest('Please provide your password')
+  }
+  const user = await User.findById(req.user.userId)
+  if (!user) {
+    throw new NotFound('User no longer exists')
+  }
+  if (!(await user.comparePassword(password))) {
+    throw new BadRequest('Password is incorrect')
+  }
+  await Job.deleteMany({ createdBy: user._id })
+  await user.deleteOne()
+  res.status(StatusCodes.OK).json({ msg: 'Account deleted' })
+}
+
+module.exports = {
+  register,
+  login,
+  getCurrentUser,
+  updateUser,
+  changePassword,
+  deleteUser,
+}
