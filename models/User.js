@@ -21,7 +21,11 @@ const UserSchema = new mongoose.Schema({
   password: {
     type: String,
     required: [true, 'Please provide password'],
-    minlength: 6,
+    // checked before the pre-save hook hashes it
+    validate: {
+      validator: (value) => /^(?=.*[A-Za-z])(?=.*\d).{8,}$/.test(value),
+      message: 'Please provide a password of at least 8 characters with a letter and a number',
+    },
   },
   location: {
     type: String,

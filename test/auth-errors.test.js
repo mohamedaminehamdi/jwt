@@ -57,3 +57,13 @@ test('malformed JSON returns 400', async () => {
   assert.strictEqual(res.status, 400)
   assert.ok(res.body.msg)
 })
+
+test('register requires a password with 8+ characters, a letter and a number', async () => {
+  for (const password of ['short1', 'lettersonly', '12345678']) {
+    const res = await api('POST', '/auth/register', {
+      body: { name: 'Weak', email: `weak-${password}@test.io`, password },
+    })
+    assert.strictEqual(res.status, 400, password)
+    assert.match(res.body.msg, /at least 8 characters/)
+  }
+})
