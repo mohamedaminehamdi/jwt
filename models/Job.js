@@ -29,6 +29,11 @@ const JobSchema = new mongoose.Schema(
       trim: true,
       maxlength: 100,
     },
+    notes: {
+      type: String,
+      trim: true,
+      maxlength: 1000,
+    },
     createdBy: {
       type: mongoose.Types.ObjectId,
       ref: 'User',

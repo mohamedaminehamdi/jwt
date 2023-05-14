@@ -69,3 +69,18 @@ test('unknown and malformed ids return 404', async () => {
   const malformed = await api('DELETE', '/jobs/not-an-id', { token })
   assert.strictEqual(malformed.status, 404)
 })
+
+test('stores notes and limits their length', async () => {
+  const created = await api('POST', '/jobs', {
+    token,
+    body: { ...newJob, notes: 'Referred by Sara. Follow up on Friday.' },
+  })
+  assert.strictEqual(created.status, 201)
+  assert.strictEqual(created.body.job.notes, 'Referred by Sara. Follow up on Friday.')
+
+  const tooLong = await api('PATCH', `/jobs/${created.body.job._id}`, {
+    token,
+    body: { notes: 'x'.repeat(1001) },
+  })
+  assert.strictEqual(tooLong.status, 400)
+})
