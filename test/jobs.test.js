@@ -84,3 +84,27 @@ test('stores notes and limits their length', async () => {
   })
   assert.strictEqual(tooLong.status, 400)
 })
+
+test('ignores server-owned fields sent by the client', async () => {
+  const forged = {
+    ...newJob,
+    _id: '64a1f0c2e4b0a1b2c3d4e5f6',
+    createdBy: '64a1f0c2e4b0a1b2c3d4e5f7',
+    createdAt: '2001-01-01T00:00:00.000Z',
+  }
+  const created = await api('POST', '/jobs', { token, body: forged })
+  assert.strictEqual(created.status, 201)
+  const { job } = created.body
+  assert.notStrictEqual(job._id, forged._id)
+  assert.notStrictEqual(job.createdBy, forged.createdBy)
+  assert.notStrictEqual(job.createdAt, forged.createdAt)
+
+  const updated = await api('PATCH', `/jobs/${job._id}`, {
+    token,
+    body: { createdBy: forged.createdBy, createdAt: forged.createdAt, position: 'Lead' },
+  })
+  assert.strictEqual(updated.status, 200)
+  assert.strictEqual(updated.body.job.position, 'Lead')
+  assert.strictEqual(updated.body.job.createdBy, job.createdBy)
+  assert.strictEqual(updated.body.job.createdAt, job.createdAt)
+})

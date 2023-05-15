@@ -12,6 +12,9 @@ const sortOptions = {
 
 const escapeRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
+// fields the server owns; clients can never set them
+const clientFields = ({ _id, createdBy, createdAt, updatedAt, ...fields }) => fields
+
 const getAllJobs = async (req, res) => {
   // ignore repeated (?a=1&a=2) or nested (?a[b]=1) params, only plain strings are valid
   const { status, jobType, search, sort } = Object.fromEntries(
@@ -49,25 +52,23 @@ const getJob = async (req, res) => {
 }
 
 const createJob = async (req, res) => {
-  req.body.createdBy = req.user.userId
-  const job = await Job.create(req.body)
+  const job = await Job.create({ ...clientFields(req.body), createdBy: req.user.userId })
   res.status(StatusCodes.CREATED).json({ job })
 }
 
 const updateJob = async (req, res) => {
   const { id } = req.params
-  const { createdBy, ...updates } = req.body
+  const updates = clientFields(req.body)
   if (updates.company === '' || updates.position === '') {
     throw new BadRequest('Company or position fields cannot be empty')
   }
-  const job = await Job.findOneAndUpdate(
-    { _id: id, createdBy: req.user.userId },
-    updates,
-    { new: true, runValidators: true }
-  )
+  // load and save (instead of findOneAndUpdate) so document validators and hooks run
+  const job = await Job.findOne({ _id: id, createdBy: req.user.userId })
   if (!job) {
     throw new NotFound(`No job with id ${id}`)
   }
+  job.set(updates)
+  await job.save()
   res.status(StatusCodes.OK).json({ job })
 }
 
