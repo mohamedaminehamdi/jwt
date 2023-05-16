@@ -29,6 +29,14 @@ const JobSchema = new mongoose.Schema(
       trim: true,
       maxlength: 100,
     },
+    salaryMin: {
+      type: Number,
+      min: 0,
+    },
+    salaryMax: {
+      type: Number,
+      min: 0,
+    },
     notes: {
       type: String,
       trim: true,
@@ -42,6 +50,13 @@ const JobSchema = new mongoose.Schema(
   },
   { timestamps: true }
 )
+
+// checked here rather than on a field so changing either side re-validates the pair
+JobSchema.pre('validate', function () {
+  if (this.salaryMin != null && this.salaryMax != null && this.salaryMin > this.salaryMax) {
+    this.invalidate('salaryMax', 'Maximum salary must be at least the minimum salary')
+  }
+})
 
 // every job query is scoped to one user, usually sorted by date or filtered by status
 JobSchema.index({ createdBy: 1, createdAt: -1 })

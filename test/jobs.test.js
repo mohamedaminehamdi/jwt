@@ -108,3 +108,30 @@ test('ignores server-owned fields sent by the client', async () => {
   assert.strictEqual(updated.body.job.createdBy, job.createdBy)
   assert.strictEqual(updated.body.job.createdAt, job.createdAt)
 })
+
+test('validates the salary range', async () => {
+  const inverted = await api('POST', '/jobs', {
+    token,
+    body: { ...newJob, salaryMin: 60000, salaryMax: 40000 },
+  })
+  assert.strictEqual(inverted.status, 400)
+  assert.match(inverted.body.msg, /Maximum salary/)
+
+  const created = await api('POST', '/jobs', {
+    token,
+    body: { ...newJob, salaryMin: 40000, salaryMax: 60000 },
+  })
+  assert.strictEqual(created.status, 201)
+  const id = created.body.job._id
+
+  // raising only the minimum still checks it against the stored maximum
+  const raised = await api('PATCH', `/jobs/${id}`, { token, body: { salaryMin: 70000 } })
+  assert.strictEqual(raised.status, 400)
+
+  const negative = await api('PATCH', `/jobs/${id}`, { token, body: { salaryMin: -1 } })
+  assert.strictEqual(negative.status, 400)
+
+  const cleared = await api('PATCH', `/jobs/${id}`, { token, body: { salaryMin: '', salaryMax: '' } })
+  assert.strictEqual(cleared.status, 200)
+  assert.strictEqual(cleared.body.job.salaryMin, null)
+})
