@@ -13,6 +13,8 @@ let baseUrl
 // each test file runs in its own process, so the pid gives it its own database
 const startServer = async () => {
   await mongoose.connect(MONGO_URI, { dbName: `jobs-test-${process.pid}` })
+  // the unique email index must exist before tests rely on it
+  await Promise.all(Object.values(mongoose.models).map((model) => model.init()))
   await new Promise((resolve) => {
     server = app.listen(0, resolve)
   })
