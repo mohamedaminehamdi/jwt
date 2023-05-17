@@ -37,6 +37,16 @@ const JobSchema = new mongoose.Schema(
       type: Number,
       min: 0,
     },
+    // http(s) only: the UI renders it as a link, so javascript: URLs must never get in
+    link: {
+      type: String,
+      trim: true,
+      maxlength: 500,
+      validate: {
+        validator: (value) => !value || /^https?:\/\/\S+$/i.test(value),
+        message: 'Please provide a valid http or https link',
+      },
+    },
     notes: {
       type: String,
       trim: true,

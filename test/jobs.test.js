@@ -135,3 +135,18 @@ test('validates the salary range', async () => {
   assert.strictEqual(cleared.status, 200)
   assert.strictEqual(cleared.body.job.salaryMin, null)
 })
+
+test('accepts only http and https links', async () => {
+  const created = await api('POST', '/jobs', {
+    token,
+    body: { ...newJob, link: 'https://acme.dev/careers/42' },
+  })
+  assert.strictEqual(created.status, 201)
+  assert.strictEqual(created.body.job.link, 'https://acme.dev/careers/42')
+
+  for (const link of ['javascript:alert(1)', 'ftp://acme.dev', 'acme.dev']) {
+    const res = await api('PATCH', `/jobs/${created.body.job._id}`, { token, body: { link } })
+    assert.strictEqual(res.status, 400, link)
+    assert.match(res.body.msg, /valid http or https link/)
+  }
+})
