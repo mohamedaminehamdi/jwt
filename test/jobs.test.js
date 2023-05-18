@@ -150,3 +150,20 @@ test('accepts only http and https links', async () => {
     assert.match(res.body.msg, /valid http or https link/)
   }
 })
+
+test('records each status change', async () => {
+  const created = await api('POST', '/jobs', {
+    token,
+    body: { ...newJob, statusHistory: [{ status: 'declined', at: '2001-01-01' }] },
+  })
+  const id = created.body.job._id
+  assert.deepStrictEqual(created.body.job.statusHistory.map((h) => h.status), ['pending'])
+
+  await api('PATCH', `/jobs/${id}`, { token, body: { status: 'interview' } })
+  await api('PATCH', `/jobs/${id}`, { token, body: { status: 'interview', notes: 'same status' } })
+  const res = await api('PATCH', `/jobs/${id}`, { token, body: { status: 'declined' } })
+
+  const history = res.body.job.statusHistory
+  assert.deepStrictEqual(history.map((h) => h.status), ['pending', 'interview', 'declined'])
+  assert.ok(history.every((h, i) => i === 0 || h.at >= history[i - 1].at))
+})

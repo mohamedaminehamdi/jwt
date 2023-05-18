@@ -52,6 +52,13 @@ const JobSchema = new mongoose.Schema(
       trim: true,
       maxlength: 1000,
     },
+    statusHistory: [
+      {
+        _id: false,
+        status: String,
+        at: Date,
+      },
+    ],
     createdBy: {
       type: mongoose.Types.ObjectId,
       ref: 'User',
@@ -65,6 +72,12 @@ const JobSchema = new mongoose.Schema(
 JobSchema.pre('validate', function () {
   if (this.salaryMin != null && this.salaryMax != null && this.salaryMin > this.salaryMax) {
     this.invalidate('salaryMax', 'Maximum salary must be at least the minimum salary')
+  }
+})
+
+JobSchema.pre('save', function () {
+  if (this.isNew || this.isModified('status')) {
+    this.statusHistory.push({ status: this.status, at: new Date() })
   }
 })
 

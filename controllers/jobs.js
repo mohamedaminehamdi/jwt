@@ -13,7 +13,8 @@ const sortOptions = {
 const escapeRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
 // fields the server owns; clients can never set them
-const clientFields = ({ _id, createdBy, createdAt, updatedAt, ...fields }) => fields
+const clientFields = ({ _id, createdBy, createdAt, updatedAt, statusHistory, ...fields }) =>
+  fields
 
 const getAllJobs = async (req, res) => {
   // ignore repeated (?a=1&a=2) or nested (?a[b]=1) params, only plain strings are valid
