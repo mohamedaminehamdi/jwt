@@ -25,7 +25,8 @@ const getAllJobs = async (req, res) => {
   if (status && status !== 'all') queryObject.status = status
   if (jobType && jobType !== 'all') queryObject.jobType = jobType
   if (search) {
-    queryObject.position = new RegExp(escapeRegex(search), 'i')
+    const pattern = new RegExp(escapeRegex(search), 'i')
+    queryObject.$or = [{ position: pattern }, { company: pattern }]
   }
 
   const page = Math.max(Number(req.query.page) || 1, 1)

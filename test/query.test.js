@@ -37,13 +37,14 @@ test('filters by status and job type', async () => {
   assert.strictEqual((await list('status=all&jobType=all')).totalJobs, 5)
 })
 
-test('searches position case-insensitively and treats input literally', async () => {
+test('searches position and company case-insensitively and treats input literally', async () => {
   assert.deepStrictEqual(positions(await list('search=DEVELOPER&sort=a-z')), [
     'Backend Developer',
     'Frontend Developer',
   ])
   assert.deepStrictEqual(positions(await list('search=c%2B%2B')), ['C++ Engineer'])
   assert.strictEqual((await list('search=.*')).totalJobs, 0)
+  assert.deepStrictEqual(positions(await list('search=globex')), ['Frontend Developer'])
 })
 
 test('sorts by date and position', async () => {
