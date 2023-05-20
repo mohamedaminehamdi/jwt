@@ -84,3 +84,18 @@ test('ignores repeated and nested query params', async () => {
   assert.strictEqual((await list('status=pending&status=declined')).totalJobs, 5)
   assert.strictEqual((await list('status[$ne]=pending')).totalJobs, 5)
 })
+
+test('filters by creation date', async () => {
+  const day = (offset) => new Date(Date.now() + offset * 86400000).toISOString().slice(0, 10)
+  assert.strictEqual((await list(`from=${day(0)}`)).totalJobs, 5)
+  assert.strictEqual((await list(`to=${day(0)}`)).totalJobs, 5)
+  assert.strictEqual((await list(`from=${day(-1)}&to=${day(0)}`)).totalJobs, 5)
+  assert.strictEqual((await list(`to=${day(-1)}`)).totalJobs, 0)
+  assert.strictEqual((await list(`from=${day(1)}`)).totalJobs, 0)
+
+  for (const bad of ['from=2023-02-30', 'to=yesterday', 'from=2023-5-1']) {
+    const res = await api('GET', `/jobs?${bad}`, { token })
+    assert.strictEqual(res.status, 400, bad)
+    assert.match(res.body.msg, /must be a date/)
+  }
+})

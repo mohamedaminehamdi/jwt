@@ -12,13 +12,20 @@ const sortOptions = {
 
 const escapeRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
+// YYYY-MM-DD (UTC) to a Date, or undefined when it is not a real day
+const parseDay = (value) => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return undefined
+  const date = new Date(`${value}T00:00:00Z`)
+  return date.toISOString().startsWith(value) ? date : undefined
+}
+
 // fields the server owns; clients can never set them
 const clientFields = ({ _id, createdBy, createdAt, updatedAt, statusHistory, ...fields }) =>
   fields
 
 const getAllJobs = async (req, res) => {
   // ignore repeated (?a=1&a=2) or nested (?a[b]=1) params, only plain strings are valid
-  const { status, jobType, search, sort } = Object.fromEntries(
+  const { status, jobType, search, sort, from, to } = Object.fromEntries(
     Object.entries(req.query).filter(([, value]) => typeof value === 'string')
   )
   const queryObject = { createdBy: req.user.userId }
@@ -27,6 +34,19 @@ const getAllJobs = async (req, res) => {
   if (search) {
     const pattern = new RegExp(escapeRegex(search), 'i')
     queryObject.$or = [{ position: pattern }, { company: pattern }]
+  }
+  if (from || to) {
+    const createdAt = {}
+    for (const [name, value] of Object.entries({ from, to })) {
+      if (!value) continue
+      const day = parseDay(value)
+      if (!day) throw new BadRequest(`${name} must be a date like 2023-05-20`)
+      // "to" includes the whole day
+      if (name === 'from') createdAt.$gte = day
+      else createdAt.$lt = new Date(day.getTime() + 24 * 60 * 60 * 1000)
+    }
+    // built by the server, so sanitizeFilter must not wrap the operators
+    queryObject.createdAt = mongoose.trusted(createdAt)
   }
 
   const page = Math.max(Number(req.query.page) || 1, 1)
