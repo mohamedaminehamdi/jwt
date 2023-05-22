@@ -38,7 +38,12 @@ const api = async (method, path, { body, token, headers: extra } = {}) => {
     // strings are sent as-is so tests can post malformed JSON
     body: typeof body === 'string' ? body : body && JSON.stringify(body),
   })
-  return { status: res.status, headers: res.headers, body: await res.json() }
+  const isJson = res.headers.get('content-type')?.includes('application/json')
+  return {
+    status: res.status,
+    headers: res.headers,
+    body: isJson ? await res.json() : await res.text(),
+  }
 }
 
 let userCount = 0

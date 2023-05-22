@@ -23,7 +23,8 @@ const parseDay = (value) => {
 const clientFields = ({ _id, createdBy, createdAt, updatedAt, statusHistory, ...fields }) =>
   fields
 
-const getAllJobs = async (req, res) => {
+// filter and sort shared by the jobs list and the CSV export
+const buildQuery = (req) => {
   // ignore repeated (?a=1&a=2) or nested (?a[b]=1) params, only plain strings are valid
   const { status, jobType, search, sort, from, to } = Object.fromEntries(
     Object.entries(req.query).filter(([, value]) => typeof value === 'string')
@@ -48,13 +49,17 @@ const getAllJobs = async (req, res) => {
     // built by the server, so sanitizeFilter must not wrap the operators
     queryObject.createdAt = mongoose.trusted(createdAt)
   }
+  return { queryObject, sortBy: sortOptions[sort] || sortOptions.latest }
+}
 
+const getAllJobs = async (req, res) => {
+  const { queryObject, sortBy } = buildQuery(req)
   const page = Math.max(Number(req.query.page) || 1, 1)
   const limit = Math.min(Math.max(Number(req.query.limit) || 10, 1), 100)
 
   const [jobs, totalJobs] = await Promise.all([
     Job.find(queryObject)
-      .sort(sortOptions[sort] || sortOptions.latest)
+      .sort(sortBy)
       .skip((page - 1) * limit)
       .limit(limit),
     Job.countDocuments(queryObject),
@@ -62,6 +67,35 @@ const getAllJobs = async (req, res) => {
   res
     .status(StatusCodes.OK)
     .json({ jobs, totalJobs, numOfPages: Math.ceil(totalJobs / limit) })
+}
+
+const csvColumns = [
+  'company',
+  'position',
+  'status',
+  'jobType',
+  'jobLocation',
+  'salaryMin',
+  'salaryMax',
+  'link',
+  'notes',
+  'createdAt',
+]
+
+// quote every cell; a leading = + - @ would run as a formula when opened in a spreadsheet
+const csvCell = (value) => {
+  let text = value instanceof Date ? value.toISOString() : String(value ?? '')
+  if (/^[=+\-@\t\r]/.test(text)) text = `'${text}`
+  return `"${text.replace(/"/g, '""')}"`
+}
+
+const exportJobs = async (req, res) => {
+  const { queryObject, sortBy } = buildQuery(req)
+  const jobs = await Job.find(queryObject).sort(sortBy).lean()
+  const rows = [csvColumns, ...jobs.map((job) => csvColumns.map((column) => job[column]))]
+  res
+    .attachment('jobs.csv')
+    .send(rows.map((row) => row.map(csvCell).join(',')).join('\r\n') + '\r\n')
 }
 
 const getJob = async (req, res) => {
@@ -145,4 +179,5 @@ module.exports = {
   updateJob,
   deleteJob,
   showStats,
+  exportJobs,
 }
