@@ -146,6 +146,13 @@ const showStats = async (req, res) => {
   const defaultStats = { pending: 0, interview: 0, declined: 0 }
   for (const { _id, count } of statusCounts) defaultStats[_id] = count
 
+  const typeCounts = await Job.aggregate([
+    { $match: { createdBy } },
+    { $group: { _id: '$jobType', count: { $sum: 1 } } },
+  ])
+  const jobTypeStats = { 'full-time': 0, 'part-time': 0, remote: 0, internship: 0 }
+  for (const { _id, count } of typeCounts) jobTypeStats[_id] = count
+
   // six most recent months that have applications, oldest first
   const monthly = await Job.aggregate([
     { $match: { createdBy } },
@@ -169,7 +176,7 @@ const showStats = async (req, res) => {
     }))
     .reverse()
 
-  res.status(StatusCodes.OK).json({ defaultStats, monthlyApplications })
+  res.status(StatusCodes.OK).json({ defaultStats, jobTypeStats, monthlyApplications })
 }
 
 module.exports = {

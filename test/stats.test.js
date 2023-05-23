@@ -22,7 +22,7 @@ before(async () => {
         company: 'Acme',
         position: `Job ${n}-${i}`,
         status: ['pending', 'interview', 'declined'][i % 3],
-        jobType: 'full-time',
+        jobType: i % 2 ? 'remote' : 'full-time',
         createdBy,
         createdAt: date,
         updatedAt: date,
@@ -38,6 +38,16 @@ test('counts jobs per status', async () => {
   assert.strictEqual(res.status, 200)
   // 36 jobs, statuses cycle pending/interview/declined within each month
   assert.deepStrictEqual(res.body.defaultStats, { pending: 15, interview: 12, declined: 9 })
+})
+
+test('counts jobs per job type', async () => {
+  const res = await api('GET', '/jobs/stats', { token })
+  assert.deepStrictEqual(res.body.jobTypeStats, {
+    'full-time': 20,
+    'part-time': 0,
+    remote: 16,
+    internship: 0,
+  })
 })
 
 test('returns the six most recent months, oldest first', async () => {
@@ -57,6 +67,7 @@ test('a user without jobs gets zeroed stats', async () => {
   const res = await api('GET', '/jobs/stats', { token: other.token })
   assert.deepStrictEqual(res.body, {
     defaultStats: { pending: 0, interview: 0, declined: 0 },
+    jobTypeStats: { 'full-time': 0, 'part-time': 0, remote: 0, internship: 0 },
     monthlyApplications: [],
   })
 })
