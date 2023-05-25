@@ -16,6 +16,9 @@
     },
     {
       "name": "Jobs"
+    },
+    {
+      "name": "Health"
     }
   ],
   "paths": {
@@ -201,6 +204,59 @@
           },
           "400": {
             "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Delete the account and all its jobs",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteAccountInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Account deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or wrong password",
             "content": {
               "application/json": {
                 "schema": {
@@ -609,6 +665,91 @@
           }
         }
       }
+    },
+    "/auth/password": {
+      "patch": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Change password (tokens issued before the change stop working)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password changed, a fresh token is returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing fields, wrong current password or weak new password",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Server and database status",
+        "responses": {
+          "200": {
+            "description": "Server and database are up",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Database is disconnected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -675,7 +816,9 @@
           },
           "password": {
             "type": "string",
-            "minLength": 6,
+            "minLength": 8,
+            "pattern": "^(?=.*[A-Za-z])(?=.*\\d).{8,}$",
+            "description": "At least 8 characters with a letter and a number",
             "example": "secret123"
           }
         }
@@ -884,6 +1027,57 @@
                 }
               }
             }
+          }
+        }
+      },
+      "ChangePasswordInput": {
+        "type": "object",
+        "required": [
+          "currentPassword",
+          "newPassword"
+        ],
+        "properties": {
+          "currentPassword": {
+            "type": "string",
+            "example": "secret123"
+          },
+          "newPassword": {
+            "type": "string",
+            "minLength": 8,
+            "pattern": "^(?=.*[A-Za-z])(?=.*\\d).{8,}$",
+            "description": "At least 8 characters with a letter and a number",
+            "example": "newSecret456"
+          }
+        }
+      },
+      "DeleteAccountInput": {
+        "type": "object",
+        "required": [
+          "password"
+        ],
+        "properties": {
+          "password": {
+            "type": "string",
+            "example": "secret123"
+          }
+        }
+      },
+      "Health": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "error"
+            ]
+          },
+          "db": {
+            "type": "string",
+            "enum": [
+              "connected",
+              "disconnected"
+            ]
           }
         }
       }
