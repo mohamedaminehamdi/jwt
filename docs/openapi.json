@@ -250,7 +250,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Error"
+                  "$ref": "#/components/schemas/Message"
                 }
               }
             }
@@ -325,7 +325,27 @@
             "schema": {
               "type": "string"
             },
-            "description": "Case-insensitive match on position"
+            "description": "Case-insensitive match on position or company"
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "example": "2023-05-01"
+            },
+            "description": "Only jobs created on or after this day (UTC)"
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "example": "2023-05-01"
+            },
+            "description": "Only jobs created on or before this day (UTC)"
           },
           {
             "name": "sort",
@@ -385,6 +405,16 @@
                       "type": "integer"
                     }
                   }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid date filter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
@@ -465,7 +495,7 @@
         "tags": [
           "Jobs"
         ],
-        "summary": "Counts per status and recent monthly applications",
+        "summary": "Counts per status and job type, and recent monthly applications",
         "security": [
           {
             "bearerAuth": []
@@ -478,6 +508,126 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Stats"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/jobs/export": {
+      "get": {
+        "tags": [
+          "Jobs"
+        ],
+        "summary": "Download all matching jobs as CSV",
+        "description": "Takes the same filters as the jobs list, without pages. Cells starting with = + - or @ are prefixed with a quote so spreadsheets do not run them as formulas.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "all",
+                "interview",
+                "declined",
+                "pending"
+              ]
+            },
+            "description": "Filter by status"
+          },
+          {
+            "name": "jobType",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "all",
+                "full-time",
+                "part-time",
+                "remote",
+                "internship"
+              ]
+            },
+            "description": "Filter by job type"
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Case-insensitive match on position or company"
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "example": "2023-05-01"
+            },
+            "description": "Only jobs created on or after this day (UTC)"
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "example": "2023-05-01"
+            },
+            "description": "Only jobs created on or before this day (UTC)"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "latest",
+                "oldest",
+                "a-z",
+                "z-a"
+              ],
+              "default": "latest"
+            },
+            "description": "Sort order"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "CSV file (jobs.csv)",
+            "content": {
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid date filter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
@@ -638,7 +788,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Error"
+                  "$ref": "#/components/schemas/Message"
                 }
               }
             }
@@ -901,6 +1051,31 @@
             "type": "string",
             "maxLength": 100,
             "example": "Tunis"
+          },
+          "salaryMin": {
+            "type": "number",
+            "minimum": 0,
+            "nullable": true,
+            "example": 40000
+          },
+          "salaryMax": {
+            "type": "number",
+            "minimum": 0,
+            "nullable": true,
+            "example": 55000,
+            "description": "Must be at least salaryMin"
+          },
+          "link": {
+            "type": "string",
+            "maxLength": 500,
+            "pattern": "^https?://\\S+$",
+            "example": "https://acme.dev/careers/42",
+            "description": "Job posting URL (http or https only)"
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 1000,
+            "example": "Referred by Sara"
           }
         }
       },
@@ -940,6 +1115,31 @@
             "type": "string",
             "maxLength": 100,
             "example": "Tunis"
+          },
+          "salaryMin": {
+            "type": "number",
+            "minimum": 0,
+            "nullable": true,
+            "example": 40000
+          },
+          "salaryMax": {
+            "type": "number",
+            "minimum": 0,
+            "nullable": true,
+            "example": 55000,
+            "description": "Must be at least salaryMin"
+          },
+          "link": {
+            "type": "string",
+            "maxLength": 500,
+            "pattern": "^https?://\\S+$",
+            "example": "https://acme.dev/careers/42",
+            "description": "Job posting URL (http or https only)"
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 1000,
+            "example": "Referred by Sara"
           }
         }
       },
@@ -983,6 +1183,52 @@
             "maxLength": 100,
             "example": "Tunis"
           },
+          "salaryMin": {
+            "type": "number",
+            "minimum": 0,
+            "nullable": true,
+            "example": 40000
+          },
+          "salaryMax": {
+            "type": "number",
+            "minimum": 0,
+            "nullable": true,
+            "example": 55000,
+            "description": "Must be at least salaryMin"
+          },
+          "link": {
+            "type": "string",
+            "maxLength": 500,
+            "pattern": "^https?://\\S+$",
+            "example": "https://acme.dev/careers/42",
+            "description": "Job posting URL (http or https only)"
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 1000,
+            "example": "Referred by Sara"
+          },
+          "statusHistory": {
+            "type": "array",
+            "description": "Every status the job has had, oldest first",
+            "items": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "interview",
+                    "declined",
+                    "pending"
+                  ]
+                },
+                "at": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
+          },
           "createdBy": {
             "type": "string"
           },
@@ -1009,6 +1255,23 @@
                 "type": "integer"
               },
               "declined": {
+                "type": "integer"
+              }
+            }
+          },
+          "jobTypeStats": {
+            "type": "object",
+            "properties": {
+              "full-time": {
+                "type": "integer"
+              },
+              "part-time": {
+                "type": "integer"
+              },
+              "remote": {
+                "type": "integer"
+              },
+              "internship": {
                 "type": "integer"
               }
             }
@@ -1078,6 +1341,14 @@
               "connected",
               "disconnected"
             ]
+          }
+        }
+      },
+      "Message": {
+        "type": "object",
+        "properties": {
+          "msg": {
+            "type": "string"
           }
         }
       }
