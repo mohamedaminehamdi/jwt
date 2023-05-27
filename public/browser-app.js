@@ -67,6 +67,13 @@ const formatDate = (date) =>
     year: 'numeric',
   })
 
+const formatSalary = ({ salaryMin: min, salaryMax: max }) => {
+  const format = (value) => value.toLocaleString('en-US')
+  if (min != null && max != null) return `salary ${format(min)}–${format(max)}`
+  if (min != null) return `salary from ${format(min)}`
+  if (max != null) return `salary up to ${format(max)}`
+}
+
 const jobItem = (job) => {
   const li = el('li', 'job')
   const header = el('div', 'job-header')
@@ -74,7 +81,7 @@ const jobItem = (job) => {
     el('h5', 'job-position', job.position),
     el('span', `status status-${job.status}`, job.status)
   )
-  const details = [job.company, job.jobLocation, job.jobType, formatDate(job.createdAt)]
+  const details = [job.company, job.jobLocation, job.jobType, formatSalary(job), formatDate(job.createdAt)]
   const actions = el('div', 'job-actions')
   for (const action of ['edit', 'delete']) {
     const button = el('button', `btn ${action === 'delete' ? 'btn-danger' : 'btn-hipster'}`, action)
@@ -83,7 +90,17 @@ const jobItem = (job) => {
     button.dataset.id = job._id
     actions.append(button)
   }
-  li.append(header, el('p', 'job-meta', details.filter(Boolean).join(' · ')), actions)
+  li.append(header, el('p', 'job-meta', details.filter(Boolean).join(' · ')))
+  if (job.notes) li.append(el('p', 'job-notes', job.notes))
+  // the API only stores http(s) links; check again before making it clickable
+  if (/^https?:\/\//i.test(job.link || '')) {
+    const link = el('a', 'job-link', 'job posting')
+    link.href = job.link
+    link.target = '_blank'
+    link.rel = 'noopener noreferrer'
+    li.append(link)
+  }
+  li.append(actions)
   return li
 }
 
@@ -129,7 +146,17 @@ const loadStats = async () => {
   }
 }
 
-const jobFields = ['position', 'company', 'jobLocation', 'status', 'jobType']
+const jobFields = [
+  'position',
+  'company',
+  'jobLocation',
+  'status',
+  'jobType',
+  'salaryMin',
+  'salaryMax',
+  'link',
+  'notes',
+]
 
 const setEditing = (job) => {
   editingJobId = job ? job._id : null
@@ -138,7 +165,7 @@ const setEditing = (job) => {
   jobCancel.hidden = !job
   jobForm.reset()
   if (job) {
-    for (const field of jobFields) jobForm.elements[field].value = job[field] || ''
+    for (const field of jobFields) jobForm.elements[field].value = job[field] ?? ''
   }
 }
 
