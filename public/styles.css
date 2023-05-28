@@ -477,6 +477,6 @@ ul {
     grid-template-columns: repeat(3, 1fr);
   }
   .filters {
-    grid-template-columns: 2fr repeat(3, 1fr) auto;
+    grid-template-columns: 2fr repeat(3, 1fr);
   }
 }

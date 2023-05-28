@@ -112,7 +112,7 @@
 
         <form class="filters" id="filters">
           <div class="form-row">
-            <label for="search" class="form-label">search position</label>
+            <label for="search" class="form-label">search position or company</label>
             <input type="search" id="search" name="search" class="form-input" />
           </div>
           <div class="form-row">
@@ -143,7 +143,16 @@
               <option value="z-a">z-a</option>
             </select>
           </div>
+          <div class="form-row">
+            <label for="filter-from" class="form-label">added from</label>
+            <input type="date" id="filter-from" name="from" class="form-input" />
+          </div>
+          <div class="form-row">
+            <label for="filter-to" class="form-label">added to</label>
+            <input type="date" id="filter-to" name="to" class="form-input" />
+          </div>
           <button type="reset" class="btn btn-hipster">clear filters</button>
+          <button type="button" class="btn" id="export">export CSV</button>
         </form>
 
         <p class="jobs-count" id="jobs-count"></p>

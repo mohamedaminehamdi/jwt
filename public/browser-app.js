@@ -21,6 +21,7 @@ const pageInfo = document.querySelector('#page-info')
 const prevPage = document.querySelector('#prev-page')
 const nextPage = document.querySelector('#next-page')
 const monthly = document.querySelector('#monthly')
+const exportBtn = document.querySelector('#export')
 
 let token = localStorage.getItem('token')
 let isRegister = false
@@ -293,6 +294,32 @@ nextPage.addEventListener('click', () => {
   loadJobs()
 })
 filtersForm.addEventListener('submit', (e) => e.preventDefault())
+
+// downloads the jobs matching the current filters
+exportBtn.addEventListener('click', async () => {
+  const params = new URLSearchParams(new FormData(filtersForm))
+  exportBtn.disabled = true
+  try {
+    const res = await fetch(`/api/v1/jobs/export?${params}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    if (res.status === 401) return logout()
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      throw new Error(data.msg || 'Export failed')
+    }
+    const url = URL.createObjectURL(await res.blob())
+    const link = el('a')
+    link.href = url
+    link.download = 'jobs.csv'
+    link.click()
+    URL.revokeObjectURL(url)
+  } catch (error) {
+    jobsCount.textContent = error.message
+  } finally {
+    exportBtn.disabled = false
+  }
+})
 
 const init = async () => {
   if (!token) return showAuth()
