@@ -294,6 +294,34 @@ ul {
 .dashboard-header h4 {
   margin: 0;
 }
+.account {
+  margin-top: 1.5rem;
+  background: var(--white);
+  border-radius: var(--borderRadius);
+  box-shadow: var(--shadow-2);
+  padding: 1rem 1.5rem;
+}
+.account summary {
+  cursor: pointer;
+  font-weight: 600;
+  text-transform: capitalize;
+  letter-spacing: var(--letterSpacing);
+}
+.account[open] summary {
+  margin-bottom: 1rem;
+}
+.account-grid {
+  display: grid;
+  gap: 2rem;
+}
+.form-hint {
+  margin: 0.5rem 0 0;
+  font-size: var(--smallText);
+  color: var(--grey-500);
+}
+#delete-form .form-hint {
+  margin: 0 0 1rem;
+}
 .jobs-count {
   margin: 2rem 0 1rem;
   font-weight: 600;
@@ -473,7 +501,8 @@ ul {
   .stats {
     grid-template-columns: repeat(3, 1fr);
   }
-  .form-grid {
+  .form-grid,
+  .account-grid {
     grid-template-columns: repeat(3, 1fr);
   }
   .filters {

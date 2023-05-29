@@ -22,6 +22,11 @@ const prevPage = document.querySelector('#prev-page')
 const nextPage = document.querySelector('#next-page')
 const monthly = document.querySelector('#monthly')
 const exportBtn = document.querySelector('#export')
+const account = document.querySelector('#account')
+const accountAlert = document.querySelector('#account-alert')
+const profileForm = document.querySelector('#profile-form')
+const passwordForm = document.querySelector('#password-form')
+const deleteForm = document.querySelector('#delete-form')
 
 let token = localStorage.getItem('token')
 let isRegister = false
@@ -179,8 +184,20 @@ const setAuthMode = (register) => {
   authToggle.textContent = register ? 'login instead' : 'create an account'
 }
 
-const showDashboard = (user) => {
+const saveToken = (newToken) => {
+  token = newToken
+  localStorage.setItem('token', token)
+}
+
+const showUser = (user) => {
   userName.textContent = user.name
+  for (const field of ['name', 'email', 'location']) {
+    profileForm.elements[field].value = user[field] ?? ''
+  }
+}
+
+const showDashboard = (user) => {
+  showUser(user)
   authSection.hidden = true
   dashboard.hidden = false
   loadJobs()
@@ -199,6 +216,8 @@ const logout = () => {
   page = 1
   setEditing(null)
   filtersForm.reset()
+  account.open = false
+  for (const form of [profileForm, passwordForm, deleteForm]) form.reset()
   showAuth()
 }
 
@@ -217,8 +236,7 @@ authForm.addEventListener('submit', async (e) => {
       method: 'POST',
       body,
     })
-    token = data.token
-    localStorage.setItem('token', token)
+    saveToken(data.token)
     authForm.reset()
     showDashboard(data.user)
   } catch (error) {
@@ -319,6 +337,43 @@ exportBtn.addEventListener('click', async () => {
   } finally {
     exportBtn.disabled = false
   }
+})
+
+// account forms share the submit handling and the alert
+const onAccountSubmit = (form, handler) => {
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault()
+    const button = form.querySelector('button[type="submit"]')
+    button.disabled = true
+    try {
+      await handler(Object.fromEntries(new FormData(form)))
+    } catch (error) {
+      showAlert(accountAlert, error.message)
+    } finally {
+      button.disabled = false
+    }
+  })
+}
+
+onAccountSubmit(profileForm, async (body) => {
+  const data = await api('/auth/me', { method: 'PATCH', body })
+  saveToken(data.token)
+  showUser(data.user)
+  showAlert(accountAlert, 'Profile saved', 'success')
+})
+
+onAccountSubmit(passwordForm, async (body) => {
+  const data = await api('/auth/password', { method: 'PATCH', body })
+  saveToken(data.token)
+  passwordForm.reset()
+  showAlert(accountAlert, 'Password changed', 'success')
+})
+
+onAccountSubmit(deleteForm, async (body) => {
+  if (!confirm('Delete your account and all your jobs? This cannot be undone.')) return
+  await api('/auth/me', { method: 'DELETE', body })
+  logout()
+  showAlert(authAlert, 'Account deleted', 'success')
 })
 
 const init = async () => {
