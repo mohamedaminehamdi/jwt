@@ -49,6 +49,11 @@ html {
   /* rest of the vars */
   --backgroundColor: var(--grey-50);
   --textColor: var(--grey-900);
+  --surface: var(--white);
+  --mutedColor: var(--grey-500);
+  --borderColor: var(--grey-200);
+  --linkColor: var(--primary-500);
+  color-scheme: light dark;
   --borderRadius: 0.25rem;
   --letterSpacing: 1px;
   --transition: 0.3s ease-in-out all;
@@ -63,6 +68,17 @@ html {
     0 4px 6px -2px rgba(0, 0, 0, 0.05);
   --shadow-4: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
     0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --backgroundColor: var(--grey-900);
+    --textColor: var(--grey-100);
+    --surface: var(--grey-800);
+    --mutedColor: var(--grey-400);
+    --borderColor: var(--grey-700);
+    --linkColor: var(--primary-300);
+  }
 }
 
 body {
@@ -183,7 +199,7 @@ ul {
 .form {
   width: 90vw;
   max-width: var(--fixed-width);
-  background: var(--white);
+  background: var(--surface);
   border-radius: var(--borderRadius);
   box-shadow: var(--shadow-2);
   padding: 2rem 2.5rem;
@@ -202,7 +218,8 @@ ul {
   padding: 0.375rem 0.75rem;
   border-radius: var(--borderRadius);
   background: var(--backgroundColor);
-  border: 1px solid var(--grey-200);
+  border: 1px solid var(--borderColor);
+  color: inherit;
 }
 
 .form-row {
@@ -275,7 +292,7 @@ ul {
 .link-btn {
   background: transparent;
   border: transparent;
-  color: var(--primary-500);
+  color: var(--linkColor);
   cursor: pointer;
   font: inherit;
   letter-spacing: var(--letterSpacing);
@@ -296,7 +313,7 @@ ul {
 }
 .account {
   margin-top: 1.5rem;
-  background: var(--white);
+  background: var(--surface);
   border-radius: var(--borderRadius);
   box-shadow: var(--shadow-2);
   padding: 1rem 1.5rem;
@@ -317,10 +334,20 @@ ul {
 .form-hint {
   margin: 0.5rem 0 0;
   font-size: var(--smallText);
-  color: var(--grey-500);
+  color: var(--mutedColor);
 }
 #delete-form .form-hint {
   margin: 0 0 1rem;
+}
+.empty {
+  margin: 0;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  color: var(--mutedColor);
+  background: var(--surface);
+  border-radius: var(--borderRadius);
+  box-shadow: var(--shadow-2);
+  max-width: none;
 }
 .jobs-count {
   margin: 2rem 0 1rem;
@@ -332,7 +359,7 @@ ul {
   margin: 0;
 }
 .job {
-  background: var(--white);
+  background: var(--surface);
   border-radius: var(--borderRadius);
   box-shadow: var(--shadow-2);
   padding: 1rem 1.5rem;
@@ -349,7 +376,7 @@ ul {
 }
 .job-meta {
   margin: 0.5rem 0 0;
-  color: var(--grey-500);
+  color: var(--mutedColor);
 }
 .job-notes {
   margin: 0.5rem 0 0;
@@ -358,7 +385,7 @@ ul {
 .job-link {
   display: inline-block;
   margin-top: 0.5rem;
-  color: var(--primary-500);
+  color: var(--linkColor);
   text-decoration: underline;
 }
 .status {
@@ -413,7 +440,7 @@ ul {
   display: grid;
   column-gap: 1rem;
   align-items: end;
-  background: var(--white);
+  background: var(--surface);
   border-radius: var(--borderRadius);
   box-shadow: var(--shadow-2);
   padding: 1.5rem 2.5rem 0.5rem;
@@ -441,7 +468,7 @@ ul {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: var(--white);
+  background: var(--surface);
   border-radius: var(--borderRadius);
   border-bottom: 5px solid var(--stat-color);
   box-shadow: var(--shadow-2);

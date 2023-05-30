@@ -22,6 +22,7 @@ const prevPage = document.querySelector('#prev-page')
 const nextPage = document.querySelector('#next-page')
 const monthly = document.querySelector('#monthly')
 const exportBtn = document.querySelector('#export')
+const jobsEmpty = document.querySelector('#jobs-empty')
 const account = document.querySelector('#account')
 const accountAlert = document.querySelector('#account-alert')
 const profileForm = document.querySelector('#profile-form')
@@ -126,6 +127,13 @@ const loadJobs = async () => {
     nextPage.disabled = page >= numOfPages
     jobsCount.textContent = `${totalJobs} job${totalJobs === 1 ? '' : 's'} found`
     jobsList.replaceChildren(...jobs.map(jobItem))
+    const filtered = [...params].some(
+      ([name, value]) => !['sort', 'page'].includes(name) && value && value !== 'all'
+    )
+    jobsEmpty.hidden = totalJobs > 0
+    jobsEmpty.textContent = filtered
+      ? 'No jobs match these filters.'
+      : 'No jobs yet. Add your first application with the form above.'
   } catch (error) {
     jobsCount.textContent = error.message
   }
