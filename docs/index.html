@@ -190,7 +190,7 @@ code, pre { font-family: var(--mono); font-size: 0.8125rem; }
   font-size: clamp(0.8125rem, 1.6vw, 1rem);
   line-height: 1.8;
   white-space: pre-wrap;
-  word-break: break-all;
+  overflow-wrap: anywhere;
 }
 .query b { font-weight: 600; color: var(--blue); }
 .params { display: grid; gap: 1.5rem 3rem; margin: 0; }
@@ -309,7 +309,7 @@ code, pre { font-family: var(--mono); font-size: 0.8125rem; }
         <span><code>POST /api/v1/auth/login</code> returns</span>
         <span class="ok">200 OK</span>
       </div>
-      <p class="token-raw"><span class="seg seg-h" tabindex="0">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9</span><span class="dot">.</span><span class="seg seg-p" tabindex="0">eyJ1c2VySWQiOiI2NGJlM2YyYTljMWQ0ZTBiN2E1ZjhjMjEiLCJuYW1lIjoiU2FtIiwiaWF0IjoxNjkwMzAwODAwLCJleHAiOjE2OTI4OTI4MDB9</span><span class="dot">.</span><span class="seg seg-s" tabindex="0">mBFl4iQQ8trJrR_QNazEjJzhAefobr96EsxvANxIAmo</span></p>
+      <p class="token-raw"><span class="seg seg-h" tabindex="0">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9</span><span class="dot">.</span><span class="seg seg-p" tabindex="0">eyJ1c2VySWQiOiI2NGJlM2YyYTljMWQ0ZTBiN2E1ZjhjMjEiLCJuYW1lIjoiU2FtIiwidiI6MCwiaWF0IjoxNjkwMzAwODAwLCJleHAiOjE2OTI4OTI4MDB9</span><span class="dot">.</span><span class="seg seg-s" tabindex="0">UQ7zxqf3PjwEjCgIiqA0EuQaEWxUxBVLq_uuFBSqEJY</span></p>
       <div class="decode">
         <div class="part part-h">
           <h3>Header</h3>
@@ -320,9 +320,9 @@ code, pre { font-family: var(--mono); font-size: 0.8125rem; }
         <div class="part part-p">
           <h3>Payload</h3>
           <pre>{ "userId": "64be3f2a9c1d4e0b7a5f8c21",
-  "name": "Sam",
+  "name": "Sam", "v": 0,
   "iat": 1690300800, "exp": 1692892800 }</pre>
-          <p>Who you are. Every jobs query is filtered by this userId. Tokens expire after 30 days by default.</p>
+          <p>Who you are. Every jobs query is filtered by this userId. Changing your password bumps v, which signs out old tokens. Tokens expire after 30 days by default.</p>
         </div>
         <div class="part part-s">
           <h3>Signature</h3>
@@ -351,9 +351,12 @@ code, pre { font-family: var(--mono); font-size: 0.8125rem; }
           <tr><th colspan="3" scope="colgroup">Needs a Bearer token</th></tr>
           <tr><td class="method m-get">GET</td><td><code>/auth/me</code></td><td>See your profile</td></tr>
           <tr><td class="method m-patch">PATCH</td><td><code>/auth/me</code></td><td>Change your name, email or location and get a fresh token</td></tr>
+          <tr><td class="method m-delete">DELETE</td><td><code>/auth/me</code></td><td>Delete your account and all your applications</td></tr>
+          <tr><td class="method m-patch">PATCH</td><td><code>/auth/password</code></td><td>Change your password and sign out every other session</td></tr>
           <tr><td class="method m-get">GET</td><td><code>/jobs</code></td><td>List your applications with filters, search, sorting and pages</td></tr>
           <tr><td class="method m-post">POST</td><td><code>/jobs</code></td><td>Add an application</td></tr>
-          <tr><td class="method m-get">GET</td><td><code>/jobs/stats</code></td><td>Count applications by status and by month for the last six months</td></tr>
+          <tr><td class="method m-get">GET</td><td><code>/jobs/stats</code></td><td>Count applications by status, by job type and by month for the last six months</td></tr>
+          <tr><td class="method m-get">GET</td><td><code>/jobs/export</code></td><td>Download the matching applications as a CSV file</td></tr>
           <tr><td class="method m-get">GET</td><td><code>/jobs/{id}</code></td><td>Get one application</td></tr>
           <tr><td class="method m-patch">PATCH</td><td><code>/jobs/{id}</code></td><td>Edit an application</td></tr>
           <tr><td class="method m-delete">DELETE</td><td><code>/jobs/{id}</code></td><td>Remove an application</td></tr>
@@ -364,8 +367,8 @@ code, pre { font-family: var(--mono); font-size: 0.8125rem; }
 
   <section class="section">
     <h2>Find the right application</h2>
-    <p class="section-intro">The list endpoint takes query parameters you can combine. It returns <code>{ jobs, totalJobs, numOfPages }</code>.</p>
-    <pre class="query">GET /api/v1/jobs?<b>status</b>=interview&amp;<b>jobType</b>=remote&amp;<b>search</b>=engineer&amp;<b>sort</b>=latest&amp;<b>page</b>=2&amp;<b>limit</b>=10</pre>
+    <p class="section-intro">The list endpoint takes query parameters you can combine. It returns <code>{ jobs, totalJobs, numOfPages }</code>. The CSV export takes the same filters.</p>
+    <pre class="query">GET /api/v1/jobs?<wbr><b>status</b>=interview<wbr>&amp;<b>jobType</b>=remote<wbr>&amp;<b>search</b>=engineer<wbr>&amp;<b>from</b>=2023-05-01<wbr>&amp;<b>sort</b>=latest<wbr>&amp;<b>page</b>=2</pre>
     <dl class="params">
       <div>
         <dt>status</dt>
@@ -379,7 +382,11 @@ code, pre { font-family: var(--mono); font-size: 0.8125rem; }
       </div>
       <div>
         <dt>search</dt>
-        <dd>Matches the position, ignoring case. Special characters are treated as plain text.</dd>
+        <dd>Matches the position or the company, ignoring case. Special characters are treated as plain text.</dd>
+      </div>
+      <div>
+        <dt>from and to</dt>
+        <dd>Days like <code>2023-05-01</code> (UTC). Both ends are included.</dd>
       </div>
       <div>
         <dt>sort</dt>
@@ -425,16 +432,19 @@ cd JWT && npm install</code></pre><button class="copy" type="button">Copy</butto
           <li>Helmet headers and CORS</li>
           <li>Query operators stripped <span>so <code>{"$ne": null}</code> logins fail</span></li>
           <li>Request bodies capped <span>at 10 kB</span></li>
+          <li>Changing your password <span>signs out every other session</span></li>
+          <li>Job links limited to http and https <span>and CSV cells escaped against formulas</span></li>
         </ul>
       </div>
       <div>
         <h3>Tooling</h3>
         <ul>
-          <li>36 tests <span>with the built-in node:test runner against real MongoDB</span></li>
-          <li>GitHub Actions <span>on Node 18 and 20</span></li>
-          <li>Dockerfile and Compose <span>with MongoDB 6</span></li>
+          <li>54 tests <span>with the built-in node:test runner against real MongoDB</span></li>
+          <li>ESLint and GitHub Actions <span>on Node 18 and 20</span></li>
+          <li>Dockerfile and Compose <span>with MongoDB 6 and healthchecks</span></li>
+          <li>A seed script <span>with a demo account and 60 jobs</span></li>
           <li>OpenAPI 3 spec <span>served with Swagger UI</span></li>
-          <li>Plain JavaScript web app <span>with no build step</span></li>
+          <li>Plain JavaScript web app <span>with dark mode and no build step</span></li>
         </ul>
       </div>
     </div>

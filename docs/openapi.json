@@ -2,7 +2,7 @@
   "openapi": "3.0.3",
   "info": {
     "title": "Jobs API",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "Track job applications. Register or log in to get a JWT, then send it as `Authorization: Bearer <token>`."
   },
   "servers": [
