@@ -1,23 +1,24 @@
 {
   "name": "jobs",
-  "version": "1.0.0",
-  "description": "",
+  "version": "0.1.0",
+  "description": "Jobs API secured with JWT",
   "main": "app.js",
   "scripts": {
-    "start": "nodemon app.js"
+    "start": "node app.js",
+    "dev": "nodemon app.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "dotenv": "^8.2.0",
-    "express": "^4.17.1",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
     "express-async-errors": "^3.1.1",
-    "http-status-codes": "^2.1.4",
-    "jsonwebtoken": "^8.5.1",
-    "mongoose": "^5.11.10"
+    "http-status-codes": "^2.2.0",
+    "jsonwebtoken": "^9.0.0",
+    "mongoose": "^7.2.2"
   },
   "devDependencies": {
-    "nodemon": "^2.0.7"
+    "nodemon": "^2.0.22"
   }
 }
