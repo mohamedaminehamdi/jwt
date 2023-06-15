@@ -11,6 +11,12 @@ const errorHandlerMiddleware = (err, req, res, next) => {
       .join(', ')
     return res.status(StatusCodes.BAD_REQUEST).json({ msg })
   }
+  if (err.code === 11000) {
+    const fields = Object.keys(err.keyValue).join(', ')
+    return res
+      .status(StatusCodes.BAD_REQUEST)
+      .json({ msg: `Duplicate value entered for ${fields}, please choose another value` })
+  }
   return res
     .status(StatusCodes.INTERNAL_SERVER_ERROR)
     .json({ msg: 'Something went wrong, please try again later' })
