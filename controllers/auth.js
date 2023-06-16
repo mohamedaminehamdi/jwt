@@ -1,6 +1,6 @@
 const { StatusCodes } = require('http-status-codes')
 const User = require('../models/User')
-const { BadRequest, Unauthenticated } = require('../errors')
+const { BadRequest, Unauthenticated, NotFound } = require('../errors')
 
 const userResponse = (user) => ({
   name: user.name,
@@ -30,4 +30,12 @@ const login = async (req, res) => {
     .json({ user: userResponse(user), token: user.createJWT() })
 }
 
-module.exports = { register, login }
+const getCurrentUser = async (req, res) => {
+  const user = await User.findById(req.user.userId)
+  if (!user) {
+    throw new NotFound('User no longer exists')
+  }
+  res.status(StatusCodes.OK).json({ user: userResponse(user) })
+}
+
+module.exports = { register, login, getCurrentUser }
