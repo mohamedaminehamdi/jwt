@@ -3,7 +3,12 @@ const Job = require('../models/Job')
 const { BadRequest, NotFound } = require('../errors')
 
 const getAllJobs = async (req, res) => {
-  const jobs = await Job.find({ createdBy: req.user.userId }).sort('-createdAt')
+  const { status, jobType } = req.query
+  const queryObject = { createdBy: req.user.userId }
+  if (status && status !== 'all') queryObject.status = status
+  if (jobType && jobType !== 'all') queryObject.jobType = jobType
+
+  const jobs = await Job.find(queryObject).sort('-createdAt')
   res.status(StatusCodes.OK).json({ jobs, count: jobs.length })
 }
 
