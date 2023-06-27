@@ -2,11 +2,16 @@ const { StatusCodes } = require('http-status-codes')
 const Job = require('../models/Job')
 const { BadRequest, NotFound } = require('../errors')
 
+const escapeRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
 const getAllJobs = async (req, res) => {
-  const { status, jobType } = req.query
+  const { status, jobType, search } = req.query
   const queryObject = { createdBy: req.user.userId }
   if (status && status !== 'all') queryObject.status = status
   if (jobType && jobType !== 'all') queryObject.jobType = jobType
+  if (search) {
+    queryObject.position = new RegExp(escapeRegex(String(search)), 'i')
+  }
 
   const jobs = await Job.find(queryObject).sort('-createdAt')
   res.status(StatusCodes.OK).json({ jobs, count: jobs.length })
