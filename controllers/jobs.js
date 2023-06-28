@@ -2,10 +2,17 @@ const { StatusCodes } = require('http-status-codes')
 const Job = require('../models/Job')
 const { BadRequest, NotFound } = require('../errors')
 
+const sortOptions = {
+  latest: '-createdAt',
+  oldest: 'createdAt',
+  'a-z': 'position',
+  'z-a': '-position',
+}
+
 const escapeRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
 const getAllJobs = async (req, res) => {
-  const { status, jobType, search } = req.query
+  const { status, jobType, search, sort } = req.query
   const queryObject = { createdBy: req.user.userId }
   if (status && status !== 'all') queryObject.status = status
   if (jobType && jobType !== 'all') queryObject.jobType = jobType
@@ -13,7 +20,9 @@ const getAllJobs = async (req, res) => {
     queryObject.position = new RegExp(escapeRegex(String(search)), 'i')
   }
 
-  const jobs = await Job.find(queryObject).sort('-createdAt')
+  const jobs = await Job.find(queryObject).sort(
+    sortOptions[sort] || sortOptions.latest
+  )
   res.status(StatusCodes.OK).json({ jobs, count: jobs.length })
 }
 
