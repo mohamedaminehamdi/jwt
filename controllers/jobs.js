@@ -20,10 +20,19 @@ const getAllJobs = async (req, res) => {
     queryObject.position = new RegExp(escapeRegex(String(search)), 'i')
   }
 
-  const jobs = await Job.find(queryObject).sort(
-    sortOptions[sort] || sortOptions.latest
-  )
-  res.status(StatusCodes.OK).json({ jobs, count: jobs.length })
+  const page = Math.max(Number(req.query.page) || 1, 1)
+  const limit = Math.min(Math.max(Number(req.query.limit) || 10, 1), 100)
+
+  const [jobs, totalJobs] = await Promise.all([
+    Job.find(queryObject)
+      .sort(sortOptions[sort] || sortOptions.latest)
+      .skip((page - 1) * limit)
+      .limit(limit),
+    Job.countDocuments(queryObject),
+  ])
+  res
+    .status(StatusCodes.OK)
+    .json({ jobs, totalJobs, numOfPages: Math.ceil(totalJobs / limit) })
 }
 
 const getJob = async (req, res) => {
