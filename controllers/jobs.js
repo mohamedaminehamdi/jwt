@@ -1,3 +1,4 @@
+const mongoose = require('mongoose')
 const { StatusCodes } = require('http-status-codes')
 const Job = require('../models/Job')
 const { BadRequest, NotFound } = require('../errors')
@@ -76,4 +77,23 @@ const deleteJob = async (req, res) => {
   res.status(StatusCodes.OK).json({ msg: 'Job removed' })
 }
 
-module.exports = { getAllJobs, getJob, createJob, updateJob, deleteJob }
+const showStats = async (req, res) => {
+  const createdBy = new mongoose.Types.ObjectId(req.user.userId)
+  const statusCounts = await Job.aggregate([
+    { $match: { createdBy } },
+    { $group: { _id: '$status', count: { $sum: 1 } } },
+  ])
+  const defaultStats = { pending: 0, interview: 0, declined: 0 }
+  for (const { _id, count } of statusCounts) defaultStats[_id] = count
+
+  res.status(StatusCodes.OK).json({ defaultStats })
+}
+
+module.exports = {
+  getAllJobs,
+  getJob,
+  createJob,
+  updateJob,
+  deleteJob,
+  showStats,
+}
