@@ -86,7 +86,30 @@ const showStats = async (req, res) => {
   const defaultStats = { pending: 0, interview: 0, declined: 0 }
   for (const { _id, count } of statusCounts) defaultStats[_id] = count
 
-  res.status(StatusCodes.OK).json({ defaultStats })
+  // six most recent months that have applications, oldest first
+  const monthly = await Job.aggregate([
+    { $match: { createdBy } },
+    {
+      $group: {
+        _id: { year: { $year: '$createdAt' }, month: { $month: '$createdAt' } },
+        count: { $sum: 1 },
+      },
+    },
+    { $sort: { '_id.year': -1, '_id.month': -1 } },
+    { $limit: 6 },
+  ])
+  const monthlyApplications = monthly
+    .map(({ _id: { year, month }, count }) => ({
+      date: new Date(Date.UTC(year, month - 1)).toLocaleString('en-US', {
+        month: 'short',
+        year: 'numeric',
+        timeZone: 'UTC',
+      }),
+      count,
+    }))
+    .reverse()
+
+  res.status(StatusCodes.OK).json({ defaultStats, monthlyApplications })
 }
 
 module.exports = {
