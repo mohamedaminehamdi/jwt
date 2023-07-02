@@ -38,4 +38,20 @@ const getCurrentUser = async (req, res) => {
   res.status(StatusCodes.OK).json({ user: userResponse(user) })
 }
 
-module.exports = { register, login, getCurrentUser }
+const updateUser = async (req, res) => {
+  const { name, email, location } = req.body
+  if (!name || !email) {
+    throw new BadRequest('Please provide name and email')
+  }
+  const user = await User.findById(req.user.userId)
+  if (!user) {
+    throw new NotFound('User no longer exists')
+  }
+  Object.assign(user, { name, email, location })
+  await user.save()
+  res
+    .status(StatusCodes.OK)
+    .json({ user: userResponse(user), token: user.createJWT() })
+}
+
+module.exports = { register, login, getCurrentUser, updateUser }
