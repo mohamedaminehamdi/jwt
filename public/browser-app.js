@@ -1,70 +1,100 @@
-const formDOM = document.querySelector('.form')
-const usernameInputDOM = document.querySelector('.username-input')
-const passwordInputDOM = document.querySelector('.password-input')
-const formAlertDOM = document.querySelector('.form-alert')
-const resultDOM = document.querySelector('.result')
-const btnDOM = document.querySelector('#data')
-const tokenDOM = document.querySelector('.token')
+const authSection = document.querySelector('#auth-section')
+const authForm = document.querySelector('#auth-form')
+const authTitle = document.querySelector('#auth-title')
+const authSubmit = document.querySelector('#auth-submit')
+const authToggle = document.querySelector('#auth-toggle')
+const authAlert = document.querySelector('#auth-alert')
+const nameRow = document.querySelector('#name-row')
+const dashboard = document.querySelector('#dashboard')
+const userName = document.querySelector('#user-name')
 
-formDOM.addEventListener('submit', async (e) => {
-  formAlertDOM.classList.remove('text-success')
-  tokenDOM.classList.remove('text-success')
+let token = localStorage.getItem('token')
+let isRegister = false
 
-  e.preventDefault()
-  const username = usernameInputDOM.value
-  const password = passwordInputDOM.value
+const api = async (path, { method = 'GET', body } = {}) => {
+  const headers = {}
+  if (body) headers['Content-Type'] = 'application/json'
+  if (token) headers.Authorization = `Bearer ${token}`
+  const res = await fetch(`/api/v1${path}`, {
+    method,
+    headers,
+    body: body && JSON.stringify(body),
+  })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(data.msg || 'Something went wrong')
+  return data
+}
 
-  try {
-    const { data } = await axios.post('/api/v1/login', { username, password })
-
-    formAlertDOM.style.display = 'block'
-    formAlertDOM.textContent = data.msg
-
-    formAlertDOM.classList.add('text-success')
-    usernameInputDOM.value = ''
-    passwordInputDOM.value = ''
-
-    localStorage.setItem('token', data.token)
-    resultDOM.innerHTML = ''
-    tokenDOM.textContent = 'token present'
-    tokenDOM.classList.add('text-success')
-  } catch (error) {
-    formAlertDOM.style.display = 'block'
-    formAlertDOM.textContent = error.response.data.msg
-    localStorage.removeItem('token')
-    resultDOM.innerHTML = ''
-    tokenDOM.textContent = 'no token present'
-    tokenDOM.classList.remove('text-success')
-  }
+const showAlert = (element, msg, type = 'danger') => {
+  element.textContent = msg
+  element.className = `alert alert-${type}`
+  element.hidden = false
   setTimeout(() => {
-    formAlertDOM.style.display = 'none'
-  }, 2000)
-})
+    element.hidden = true
+  }, 3000)
+}
 
-btnDOM.addEventListener('click', async () => {
-  const token = localStorage.getItem('token')
+const el = (tag, className, text) => {
+  const node = document.createElement(tag)
+  if (className) node.className = className
+  if (text !== undefined) node.textContent = text
+  return node
+}
+
+const setAuthMode = (register) => {
+  isRegister = register
+  nameRow.hidden = !register
+  authForm.elements.name.required = register
+  authTitle.textContent = register ? 'register' : 'login'
+  authSubmit.textContent = register ? 'register' : 'login'
+  authToggle.textContent = register ? 'login instead' : 'create an account'
+}
+
+const showDashboard = (user) => {
+  userName.textContent = user.name
+  authSection.hidden = true
+  dashboard.hidden = false
+}
+
+const showAuth = () => {
+  authSection.hidden = false
+  dashboard.hidden = true
+}
+
+authToggle.addEventListener('click', () => setAuthMode(!isRegister))
+
+authForm.addEventListener('submit', async (e) => {
+  e.preventDefault()
+  const { name, email, password } = authForm.elements
+  const body = { email: email.value, password: password.value }
+  if (isRegister) body.name = name.value
+  authSubmit.disabled = true
   try {
-    const { data } = await axios.get('/api/v1/dashboard', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+    const data = await api(isRegister ? '/auth/register' : '/auth/login', {
+      method: 'POST',
+      body,
     })
-    resultDOM.innerHTML = `<h5>${data.msg}</h5><p>${data.secret}</p>`
-
-    data.secret
+    token = data.token
+    localStorage.setItem('token', token)
+    authForm.reset()
+    showDashboard(data.user)
   } catch (error) {
-    localStorage.removeItem('token')
-    resultDOM.innerHTML = `<p>${error.response.data.msg}</p>`
+    showAlert(authAlert, error.message)
+  } finally {
+    authSubmit.disabled = false
   }
 })
 
-const checkToken = () => {
-  tokenDOM.classList.remove('text-success')
-
-  const token = localStorage.getItem('token')
-  if (token) {
-    tokenDOM.textContent = 'token present'
-    tokenDOM.classList.add('text-success')
+const init = async () => {
+  if (!token) return showAuth()
+  try {
+    const { user } = await api('/auth/me')
+    showDashboard(user)
+  } catch (error) {
+    localStorage.removeItem('token')
+    token = null
+    showAuth()
   }
 }
-checkToken()
+
+init()

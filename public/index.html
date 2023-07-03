@@ -2,39 +2,41 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>JWT Basics</title>
+    <title>Jobs Tracker</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
     <main>
-      <form class="form contact-form">
-        <h5>login/register</h5>
-        <div class="form-row">
-          <label for="username" class="form-label">username</label>
-          <input type="text" class="form-input username-input" />
-        </div>
-        <div class="form-row">
-          <label for="password" class="form-label">password</label>
-          <input type="password" class="form-input password-input" />
-        </div>
-        <div class="text-small form-alert">there was an error</div>
-        <button type="submit" class="btn btn-block">submit</button>
-      </form>
-      <div class="container">
-        <h4>Dashboard</h4>
-        <p class="token">no token present</p>
-        <div class="result"></div>
-        <button class="btn btn-block" id="data">get data</button>
-      </div>
+      <section id="auth-section" hidden>
+        <form class="form auth-form" id="auth-form">
+          <h5 id="auth-title">login</h5>
+          <div class="form-row" id="name-row" hidden>
+            <label for="name" class="form-label">name</label>
+            <input type="text" id="name" name="name" class="form-input" autocomplete="name" />
+          </div>
+          <div class="form-row">
+            <label for="email" class="form-label">email</label>
+            <input type="email" id="email" name="email" class="form-input" autocomplete="email" required />
+          </div>
+          <div class="form-row">
+            <label for="password" class="form-label">password</label>
+            <input type="password" id="password" name="password" class="form-input" autocomplete="current-password" minlength="6" required />
+          </div>
+          <p class="alert" id="auth-alert" role="alert" hidden></p>
+          <button type="submit" class="btn btn-block" id="auth-submit">login</button>
+          <p class="toggle-text">
+            <button type="button" class="link-btn" id="auth-toggle">create an account</button>
+          </p>
+        </form>
+      </section>
+
+      <section class="dashboard" id="dashboard" hidden>
+        <header class="dashboard-header">
+          <h4>Hello, <span id="user-name"></span></h4>
+        </header>
+      </section>
     </main>
-    <script
-      src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"
-      integrity="sha512-bZS47S7sPOxkjU/4Bt0zrhEtWx0y0CRkhEp8IckzK+ltifIIE9EMIMTuT/mEzoIMewUINruDBIR/jJnbguonqQ=="
-      crossorigin="anonymous"
-      referrerpolicy="no-referrer"
-    ></script>
     <script src="./browser-app.js"></script>
   </body>
 </html>
