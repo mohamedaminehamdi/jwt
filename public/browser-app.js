@@ -7,6 +7,8 @@ const authAlert = document.querySelector('#auth-alert')
 const nameRow = document.querySelector('#name-row')
 const dashboard = document.querySelector('#dashboard')
 const userName = document.querySelector('#user-name')
+const jobsList = document.querySelector('#jobs-list')
+const jobsCount = document.querySelector('#jobs-count')
 
 let token = localStorage.getItem('token')
 let isRegister = false
@@ -41,6 +43,35 @@ const el = (tag, className, text) => {
   return node
 }
 
+const formatDate = (date) =>
+  new Date(date).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  })
+
+const jobItem = (job) => {
+  const li = el('li', 'job')
+  const header = el('div', 'job-header')
+  header.append(
+    el('h5', 'job-position', job.position),
+    el('span', `status status-${job.status}`, job.status)
+  )
+  const details = [job.company, job.jobLocation, job.jobType, formatDate(job.createdAt)]
+  li.append(header, el('p', 'job-meta', details.filter(Boolean).join(' · ')))
+  return li
+}
+
+const loadJobs = async () => {
+  try {
+    const { jobs, totalJobs } = await api('/jobs')
+    jobsCount.textContent = `${totalJobs} job${totalJobs === 1 ? '' : 's'} found`
+    jobsList.replaceChildren(...jobs.map(jobItem))
+  } catch (error) {
+    jobsCount.textContent = error.message
+  }
+}
+
 const setAuthMode = (register) => {
   isRegister = register
   nameRow.hidden = !register
@@ -54,6 +85,7 @@ const showDashboard = (user) => {
   userName.textContent = user.name
   authSection.hidden = true
   dashboard.hidden = false
+  loadJobs()
 }
 
 const showAuth = () => {

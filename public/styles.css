@@ -293,3 +293,51 @@ ul {
 .dashboard-header h4 {
   margin: 0;
 }
+.jobs-count {
+  margin: 2rem 0 1rem;
+  font-weight: 600;
+}
+.jobs {
+  display: grid;
+  gap: 1rem;
+  margin: 0;
+}
+.job {
+  background: var(--white);
+  border-radius: var(--borderRadius);
+  box-shadow: var(--shadow-2);
+  padding: 1rem 1.5rem;
+}
+.job-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.job-position {
+  margin: 0;
+  text-transform: none;
+}
+.job-meta {
+  margin: 0.5rem 0 0;
+  color: var(--grey-500);
+}
+.status {
+  border-radius: var(--borderRadius);
+  padding: 0.125rem 0.75rem;
+  font-size: var(--smallText);
+  letter-spacing: var(--letterSpacing);
+  text-transform: capitalize;
+}
+.status-pending {
+  background: #fcefc7;
+  color: #8a6d00;
+}
+.status-interview {
+  background: var(--primary-100);
+  color: var(--primary-700);
+}
+.status-declined {
+  background: var(--red-light);
+  color: var(--red-dark);
+}
