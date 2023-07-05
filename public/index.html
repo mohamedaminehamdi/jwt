@@ -36,6 +36,45 @@
           <h4>Hello, <span id="user-name"></span></h4>
         </header>
 
+        <form class="form job-form" id="job-form">
+          <h5 id="job-form-title">add job</h5>
+          <div class="form-grid">
+            <div class="form-row">
+              <label for="position" class="form-label">position</label>
+              <input type="text" id="position" name="position" class="form-input" required />
+            </div>
+            <div class="form-row">
+              <label for="company" class="form-label">company</label>
+              <input type="text" id="company" name="company" class="form-input" required />
+            </div>
+            <div class="form-row">
+              <label for="jobLocation" class="form-label">location</label>
+              <input type="text" id="jobLocation" name="jobLocation" class="form-input" />
+            </div>
+            <div class="form-row">
+              <label for="status" class="form-label">status</label>
+              <select id="status" name="status" class="form-input">
+                <option value="pending">pending</option>
+                <option value="interview">interview</option>
+                <option value="declined">declined</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label for="jobType" class="form-label">job type</label>
+              <select id="jobType" name="jobType" class="form-input">
+                <option value="full-time">full-time</option>
+                <option value="part-time">part-time</option>
+                <option value="remote">remote</option>
+                <option value="internship">internship</option>
+              </select>
+            </div>
+          </div>
+          <p class="alert" id="job-alert" role="alert" hidden></p>
+          <div class="form-actions">
+            <button type="submit" class="btn" id="job-submit">add job</button>
+          </div>
+        </form>
+
         <p class="jobs-count" id="jobs-count"></p>
         <ul class="jobs" id="jobs-list"></ul>
       </section>

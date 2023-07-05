@@ -9,6 +9,9 @@ const dashboard = document.querySelector('#dashboard')
 const userName = document.querySelector('#user-name')
 const jobsList = document.querySelector('#jobs-list')
 const jobsCount = document.querySelector('#jobs-count')
+const jobForm = document.querySelector('#job-form')
+const jobAlert = document.querySelector('#job-alert')
+const jobSubmit = document.querySelector('#job-submit')
 
 let token = localStorage.getItem('token')
 let isRegister = false
@@ -114,6 +117,22 @@ authForm.addEventListener('submit', async (e) => {
     showAlert(authAlert, error.message)
   } finally {
     authSubmit.disabled = false
+  }
+})
+
+jobForm.addEventListener('submit', async (e) => {
+  e.preventDefault()
+  const body = Object.fromEntries(new FormData(jobForm))
+  jobSubmit.disabled = true
+  try {
+    await api('/jobs', { method: 'POST', body })
+    jobForm.reset()
+    showAlert(jobAlert, 'Job added', 'success')
+    loadJobs()
+  } catch (error) {
+    showAlert(jobAlert, error.message)
+  } finally {
+    jobSubmit.disabled = false
   }
 })
 
