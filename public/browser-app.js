@@ -12,9 +12,13 @@ const jobsCount = document.querySelector('#jobs-count')
 const jobForm = document.querySelector('#job-form')
 const jobAlert = document.querySelector('#job-alert')
 const jobSubmit = document.querySelector('#job-submit')
+const jobCancel = document.querySelector('#job-cancel')
+const jobFormTitle = document.querySelector('#job-form-title')
 
 let token = localStorage.getItem('token')
 let isRegister = false
+let currentJobs = []
+let editingJobId = null
 
 const api = async (path, { method = 'GET', body } = {}) => {
   const headers = {}
@@ -61,17 +65,39 @@ const jobItem = (job) => {
     el('span', `status status-${job.status}`, job.status)
   )
   const details = [job.company, job.jobLocation, job.jobType, formatDate(job.createdAt)]
-  li.append(header, el('p', 'job-meta', details.filter(Boolean).join(' · ')))
+  const actions = el('div', 'job-actions')
+  for (const action of ['edit', 'delete']) {
+    const button = el('button', `btn ${action === 'delete' ? 'btn-danger' : 'btn-hipster'}`, action)
+    button.type = 'button'
+    button.dataset.action = action
+    button.dataset.id = job._id
+    actions.append(button)
+  }
+  li.append(header, el('p', 'job-meta', details.filter(Boolean).join(' · ')), actions)
   return li
 }
 
 const loadJobs = async () => {
   try {
     const { jobs, totalJobs } = await api('/jobs')
+    currentJobs = jobs
     jobsCount.textContent = `${totalJobs} job${totalJobs === 1 ? '' : 's'} found`
     jobsList.replaceChildren(...jobs.map(jobItem))
   } catch (error) {
     jobsCount.textContent = error.message
+  }
+}
+
+const jobFields = ['position', 'company', 'jobLocation', 'status', 'jobType']
+
+const setEditing = (job) => {
+  editingJobId = job ? job._id : null
+  jobFormTitle.textContent = job ? 'edit job' : 'add job'
+  jobSubmit.textContent = job ? 'save' : 'add job'
+  jobCancel.hidden = !job
+  jobForm.reset()
+  if (job) {
+    for (const field of jobFields) jobForm.elements[field].value = job[field] || ''
   }
 }
 
@@ -125,14 +151,39 @@ jobForm.addEventListener('submit', async (e) => {
   const body = Object.fromEntries(new FormData(jobForm))
   jobSubmit.disabled = true
   try {
-    await api('/jobs', { method: 'POST', body })
-    jobForm.reset()
-    showAlert(jobAlert, 'Job added', 'success')
+    if (editingJobId) {
+      await api(`/jobs/${editingJobId}`, { method: 'PATCH', body })
+    } else {
+      await api('/jobs', { method: 'POST', body })
+    }
+    showAlert(jobAlert, editingJobId ? 'Job updated' : 'Job added', 'success')
+    setEditing(null)
     loadJobs()
   } catch (error) {
     showAlert(jobAlert, error.message)
   } finally {
     jobSubmit.disabled = false
+  }
+})
+
+jobCancel.addEventListener('click', () => setEditing(null))
+
+jobsList.addEventListener('click', async (e) => {
+  const button = e.target.closest('button[data-action]')
+  if (!button) return
+  const job = currentJobs.find((item) => item._id === button.dataset.id)
+  if (button.dataset.action === 'edit') {
+    setEditing(job)
+    jobForm.scrollIntoView({ behavior: 'smooth' })
+    return
+  }
+  if (!confirm(`Delete ${job.position} at ${job.company}?`)) return
+  try {
+    await api(`/jobs/${job._id}`, { method: 'DELETE' })
+    if (editingJobId === job._id) setEditing(null)
+    loadJobs()
+  } catch (error) {
+    showAlert(jobAlert, error.message)
   }
 })
 

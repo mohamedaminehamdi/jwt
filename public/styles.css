@@ -354,3 +354,16 @@ ul {
   display: flex;
   gap: 0.5rem;
 }
+.job-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+.btn-danger {
+  color: var(--red-dark);
+  background: var(--red-light);
+}
+.btn-danger:hover {
+  color: var(--white);
+  background: var(--red-dark);
+}
