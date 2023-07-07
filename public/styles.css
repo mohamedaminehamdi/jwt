@@ -367,3 +367,15 @@ ul {
   color: var(--white);
   background: var(--red-dark);
 }
+.filters {
+  display: grid;
+  column-gap: 1rem;
+  align-items: end;
+  background: var(--white);
+  border-radius: var(--borderRadius);
+  box-shadow: var(--shadow-2);
+  padding: 1.5rem 2.5rem 0.5rem;
+}
+.filters .btn {
+  margin-bottom: 1rem;
+}

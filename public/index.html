@@ -76,6 +76,42 @@
           </div>
         </form>
 
+        <form class="filters" id="filters">
+          <div class="form-row">
+            <label for="search" class="form-label">search position</label>
+            <input type="search" id="search" name="search" class="form-input" />
+          </div>
+          <div class="form-row">
+            <label for="filter-status" class="form-label">status</label>
+            <select id="filter-status" name="status" class="form-input">
+              <option value="all">all</option>
+              <option value="pending">pending</option>
+              <option value="interview">interview</option>
+              <option value="declined">declined</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label for="filter-type" class="form-label">job type</label>
+            <select id="filter-type" name="jobType" class="form-input">
+              <option value="all">all</option>
+              <option value="full-time">full-time</option>
+              <option value="part-time">part-time</option>
+              <option value="remote">remote</option>
+              <option value="internship">internship</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label for="sort" class="form-label">sort</label>
+            <select id="sort" name="sort" class="form-input">
+              <option value="latest">latest</option>
+              <option value="oldest">oldest</option>
+              <option value="a-z">a-z</option>
+              <option value="z-a">z-a</option>
+            </select>
+          </div>
+          <button type="reset" class="btn btn-hipster">clear filters</button>
+        </form>
+
         <p class="jobs-count" id="jobs-count"></p>
         <ul class="jobs" id="jobs-list"></ul>
       </section>

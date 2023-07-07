@@ -14,6 +14,7 @@ const jobAlert = document.querySelector('#job-alert')
 const jobSubmit = document.querySelector('#job-submit')
 const jobCancel = document.querySelector('#job-cancel')
 const jobFormTitle = document.querySelector('#job-form-title')
+const filtersForm = document.querySelector('#filters')
 
 let token = localStorage.getItem('token')
 let isRegister = false
@@ -79,7 +80,8 @@ const jobItem = (job) => {
 
 const loadJobs = async () => {
   try {
-    const { jobs, totalJobs } = await api('/jobs')
+    const params = new URLSearchParams(new FormData(filtersForm))
+    const { jobs, totalJobs } = await api(`/jobs?${params}`)
     currentJobs = jobs
     jobsCount.textContent = `${totalJobs} job${totalJobs === 1 ? '' : 's'} found`
     jobsList.replaceChildren(...jobs.map(jobItem))
@@ -186,6 +188,14 @@ jobsList.addEventListener('click', async (e) => {
     showAlert(jobAlert, error.message)
   }
 })
+
+let searchTimeout
+filtersForm.addEventListener('input', () => {
+  clearTimeout(searchTimeout)
+  searchTimeout = setTimeout(loadJobs, 300)
+})
+filtersForm.addEventListener('reset', () => setTimeout(loadJobs))
+filtersForm.addEventListener('submit', (e) => e.preventDefault())
 
 const init = async () => {
   if (!token) return showAuth()
