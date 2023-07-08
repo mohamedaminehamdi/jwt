@@ -15,11 +15,16 @@ const jobSubmit = document.querySelector('#job-submit')
 const jobCancel = document.querySelector('#job-cancel')
 const jobFormTitle = document.querySelector('#job-form-title')
 const filtersForm = document.querySelector('#filters')
+const pagination = document.querySelector('#pagination')
+const pageInfo = document.querySelector('#page-info')
+const prevPage = document.querySelector('#prev-page')
+const nextPage = document.querySelector('#next-page')
 
 let token = localStorage.getItem('token')
 let isRegister = false
 let currentJobs = []
 let editingJobId = null
+let page = 1
 
 const api = async (path, { method = 'GET', body } = {}) => {
   const headers = {}
@@ -81,8 +86,17 @@ const jobItem = (job) => {
 const loadJobs = async () => {
   try {
     const params = new URLSearchParams(new FormData(filtersForm))
-    const { jobs, totalJobs } = await api(`/jobs?${params}`)
+    params.set('page', page)
+    const { jobs, totalJobs, numOfPages } = await api(`/jobs?${params}`)
+    if (page > numOfPages && numOfPages > 0) {
+      page = numOfPages
+      return loadJobs()
+    }
     currentJobs = jobs
+    pagination.hidden = numOfPages < 2
+    pageInfo.textContent = `page ${page} of ${numOfPages}`
+    prevPage.disabled = page <= 1
+    nextPage.disabled = page >= numOfPages
     jobsCount.textContent = `${totalJobs} job${totalJobs === 1 ? '' : 's'} found`
     jobsList.replaceChildren(...jobs.map(jobItem))
   } catch (error) {
@@ -192,9 +206,24 @@ jobsList.addEventListener('click', async (e) => {
 let searchTimeout
 filtersForm.addEventListener('input', () => {
   clearTimeout(searchTimeout)
-  searchTimeout = setTimeout(loadJobs, 300)
+  searchTimeout = setTimeout(() => {
+    page = 1
+    loadJobs()
+  }, 300)
 })
-filtersForm.addEventListener('reset', () => setTimeout(loadJobs))
+filtersForm.addEventListener('reset', () => {
+  page = 1
+  setTimeout(loadJobs)
+})
+
+prevPage.addEventListener('click', () => {
+  page -= 1
+  loadJobs()
+})
+nextPage.addEventListener('click', () => {
+  page += 1
+  loadJobs()
+})
 filtersForm.addEventListener('submit', (e) => e.preventDefault())
 
 const init = async () => {
