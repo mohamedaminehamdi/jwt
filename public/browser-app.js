@@ -19,6 +19,7 @@ const pagination = document.querySelector('#pagination')
 const pageInfo = document.querySelector('#page-info')
 const prevPage = document.querySelector('#prev-page')
 const nextPage = document.querySelector('#next-page')
+const monthly = document.querySelector('#monthly')
 
 let token = localStorage.getItem('token')
 let isRegister = false
@@ -104,6 +105,27 @@ const loadJobs = async () => {
   }
 }
 
+const loadStats = async () => {
+  try {
+    const { defaultStats, monthlyApplications } = await api('/jobs/stats')
+    for (const [status, count] of Object.entries(defaultStats)) {
+      document.querySelector(`#stat-${status}`).textContent = count
+    }
+    const max = Math.max(1, ...monthlyApplications.map(({ count }) => count))
+    monthly.replaceChildren(
+      ...monthlyApplications.map(({ date, count }) => {
+        const li = el('li', 'month')
+        const bar = el('span', 'month-bar')
+        bar.style.width = `${(count / max) * 100}%`
+        li.append(el('span', 'month-label', date), bar, el('span', 'month-count', count))
+        return li
+      })
+    )
+  } catch (error) {
+    monthly.replaceChildren()
+  }
+}
+
 const jobFields = ['position', 'company', 'jobLocation', 'status', 'jobType']
 
 const setEditing = (job) => {
@@ -131,6 +153,7 @@ const showDashboard = (user) => {
   authSection.hidden = true
   dashboard.hidden = false
   loadJobs()
+  loadStats()
 }
 
 const showAuth = () => {
@@ -175,6 +198,7 @@ jobForm.addEventListener('submit', async (e) => {
     showAlert(jobAlert, editingJobId ? 'Job updated' : 'Job added', 'success')
     setEditing(null)
     loadJobs()
+    loadStats()
   } catch (error) {
     showAlert(jobAlert, error.message)
   } finally {
@@ -198,6 +222,7 @@ jobsList.addEventListener('click', async (e) => {
     await api(`/jobs/${job._id}`, { method: 'DELETE' })
     if (editingJobId === job._id) setEditing(null)
     loadJobs()
+    loadStats()
   } catch (error) {
     showAlert(jobAlert, error.message)
   }
