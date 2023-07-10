@@ -7,6 +7,7 @@ const authAlert = document.querySelector('#auth-alert')
 const nameRow = document.querySelector('#name-row')
 const dashboard = document.querySelector('#dashboard')
 const userName = document.querySelector('#user-name')
+const logoutBtn = document.querySelector('#logout')
 const jobsList = document.querySelector('#jobs-list')
 const jobsCount = document.querySelector('#jobs-count')
 const jobForm = document.querySelector('#job-form')
@@ -37,6 +38,8 @@ const api = async (path, { method = 'GET', body } = {}) => {
     body: body && JSON.stringify(body),
   })
   const data = await res.json().catch(() => ({}))
+  // an expired or invalid token sends the user back to the login form
+  if (res.status === 401 && token) logout()
   if (!res.ok) throw new Error(data.msg || 'Something went wrong')
   return data
 }
@@ -161,6 +164,18 @@ const showAuth = () => {
   dashboard.hidden = true
 }
 
+const logout = () => {
+  localStorage.removeItem('token')
+  token = null
+  currentJobs = []
+  page = 1
+  setEditing(null)
+  filtersForm.reset()
+  showAuth()
+}
+
+logoutBtn.addEventListener('click', logout)
+
 authToggle.addEventListener('click', () => setAuthMode(!isRegister))
 
 authForm.addEventListener('submit', async (e) => {
@@ -238,7 +253,8 @@ filtersForm.addEventListener('input', () => {
 })
 filtersForm.addEventListener('reset', () => {
   page = 1
-  setTimeout(loadJobs)
+  // logout also resets the filters; only reload when logged in
+  if (token) setTimeout(loadJobs)
 })
 
 prevPage.addEventListener('click', () => {
@@ -257,9 +273,7 @@ const init = async () => {
     const { user } = await api('/auth/me')
     showDashboard(user)
   } catch (error) {
-    localStorage.removeItem('token')
-    token = null
-    showAuth()
+    logout()
   }
 }
 
