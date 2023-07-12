@@ -3,6 +3,7 @@ require('express-async-errors');
 
 const express = require('express');
 const helmet = require('helmet');
+const cors = require('cors');
 const app = express();
 
 const connectDB = require('./db/connect');
@@ -14,6 +15,7 @@ const errorHandlerMiddleware = require('./middleware/error-handler');
 
 // middleware
 app.use(helmet());
+app.use(cors());
 app.use(express.static('./public'));
 app.use(express.json());
 
