@@ -4,6 +4,7 @@ require('express-async-errors');
 const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
+const rateLimit = require('express-rate-limit');
 const app = express();
 
 const connectDB = require('./db/connect');
@@ -13,13 +14,21 @@ const jobsRouter = require('./routes/jobs');
 const notFoundMiddleware = require('./middleware/not-found');
 const errorHandlerMiddleware = require('./middleware/error-handler');
 
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { msg: 'Too many requests, please try again later' },
+});
+
 // middleware
 app.use(helmet());
 app.use(cors());
 app.use(express.static('./public'));
 app.use(express.json());
 
-app.use('/api/v1/auth', authRouter);
+app.use('/api/v1/auth', authLimiter, authRouter);
 app.use('/api/v1/jobs', authenticateUser, jobsRouter);
 
 app.use(notFoundMiddleware);
