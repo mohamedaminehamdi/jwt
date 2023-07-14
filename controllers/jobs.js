@@ -13,12 +13,15 @@ const sortOptions = {
 const escapeRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 
 const getAllJobs = async (req, res) => {
-  const { status, jobType, search, sort } = req.query
+  // ignore repeated (?a=1&a=2) or nested (?a[b]=1) params, only plain strings are valid
+  const { status, jobType, search, sort } = Object.fromEntries(
+    Object.entries(req.query).filter(([, value]) => typeof value === 'string')
+  )
   const queryObject = { createdBy: req.user.userId }
   if (status && status !== 'all') queryObject.status = status
   if (jobType && jobType !== 'all') queryObject.jobType = jobType
   if (search) {
-    queryObject.position = new RegExp(escapeRegex(String(search)), 'i')
+    queryObject.position = new RegExp(escapeRegex(search), 'i')
   }
 
   const page = Math.max(Number(req.query.page) || 1, 1)
