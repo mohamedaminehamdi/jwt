@@ -30,6 +30,7 @@ app.use(cors());
 app.use(express.static('./public'));
 app.use(express.json({ limit: '10kb' }));
 
+app.get('/api/v1/health', (req, res) => res.json({ status: 'ok' }));
 app.use('/api/v1/auth', authLimiter, authRouter);
 app.use('/api/v1/jobs', authenticateUser, jobsRouter);
 
