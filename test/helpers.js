@@ -37,4 +37,19 @@ const api = async (method, path, { body, token } = {}) => {
   return { status: res.status, body: await res.json() }
 }
 
-module.exports = { startServer, stopServer, api }
+let userCount = 0
+
+// registers a fresh user and returns its credentials plus token
+const registerUser = async (overrides = {}) => {
+  userCount += 1
+  const user = {
+    name: 'Test User',
+    email: `user${userCount}@test.io`,
+    password: 'secret123',
+    ...overrides,
+  }
+  const res = await api('POST', '/auth/register', { body: user })
+  return { ...user, token: res.body.token }
+}
+
+module.exports = { startServer, stopServer, api, registerUser }
