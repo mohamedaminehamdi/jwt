@@ -25,8 +25,8 @@ const stopServer = async () => {
   await new Promise((resolve) => server.close(resolve))
 }
 
-const api = async (method, path, { body, token } = {}) => {
-  const headers = {}
+const api = async (method, path, { body, token, headers: extra } = {}) => {
+  const headers = { ...extra }
   if (body) headers['Content-Type'] = 'application/json'
   if (token) headers.Authorization = `Bearer ${token}`
   const res = await fetch(baseUrl + path, {
