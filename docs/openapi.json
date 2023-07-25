@@ -13,6 +13,9 @@
   "tags": [
     {
       "name": "Auth"
+    },
+    {
+      "name": "Jobs"
     }
   ],
   "paths": {
@@ -218,6 +221,394 @@
           }
         }
       }
+    },
+    "/jobs": {
+      "get": {
+        "tags": [
+          "Jobs"
+        ],
+        "summary": "List your jobs",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "all",
+                "interview",
+                "declined",
+                "pending"
+              ]
+            },
+            "description": "Filter by status"
+          },
+          {
+            "name": "jobType",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "all",
+                "full-time",
+                "part-time",
+                "remote",
+                "internship"
+              ]
+            },
+            "description": "Filter by job type"
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Case-insensitive match on position"
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "latest",
+                "oldest",
+                "a-z",
+                "z-a"
+              ],
+              "default": "latest"
+            },
+            "description": "Sort order"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "description": "Page number"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10
+            },
+            "description": "Jobs per page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of jobs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "jobs": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Job"
+                      }
+                    },
+                    "totalJobs": {
+                      "type": "integer"
+                    },
+                    "numOfPages": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Jobs"
+        ],
+        "summary": "Create a job",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JobInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Job created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "job": {
+                      "$ref": "#/components/schemas/Job"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/jobs/stats": {
+      "get": {
+        "tags": [
+          "Jobs"
+        ],
+        "summary": "Counts per status and recent monthly applications",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Stats",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stats"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/jobs/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "tags": [
+          "Jobs"
+        ],
+        "summary": "Get a job",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The job",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "job": {
+                      "$ref": "#/components/schemas/Job"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No job with this id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Jobs"
+        ],
+        "summary": "Update a job",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JobUpdateInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated job",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "job": {
+                      "$ref": "#/components/schemas/Job"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No job with this id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Jobs"
+        ],
+        "summary": "Delete a job",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Job removed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication invalid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No job with this id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -324,6 +715,175 @@
           "location": {
             "type": "string",
             "maxLength": 50
+          }
+        }
+      },
+      "JobInput": {
+        "type": "object",
+        "required": [
+          "company",
+          "position"
+        ],
+        "properties": {
+          "company": {
+            "type": "string",
+            "maxLength": 50,
+            "example": "Acme"
+          },
+          "position": {
+            "type": "string",
+            "maxLength": 100,
+            "example": "Backend Developer"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "interview",
+              "declined",
+              "pending"
+            ],
+            "default": "pending"
+          },
+          "jobType": {
+            "type": "string",
+            "enum": [
+              "full-time",
+              "part-time",
+              "remote",
+              "internship"
+            ],
+            "default": "full-time"
+          },
+          "jobLocation": {
+            "type": "string",
+            "maxLength": 100,
+            "example": "Tunis"
+          }
+        }
+      },
+      "JobUpdateInput": {
+        "type": "object",
+        "properties": {
+          "company": {
+            "type": "string",
+            "maxLength": 50,
+            "example": "Acme"
+          },
+          "position": {
+            "type": "string",
+            "maxLength": 100,
+            "example": "Backend Developer"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "interview",
+              "declined",
+              "pending"
+            ],
+            "default": "pending"
+          },
+          "jobType": {
+            "type": "string",
+            "enum": [
+              "full-time",
+              "part-time",
+              "remote",
+              "internship"
+            ],
+            "default": "full-time"
+          },
+          "jobLocation": {
+            "type": "string",
+            "maxLength": 100,
+            "example": "Tunis"
+          }
+        }
+      },
+      "Job": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string"
+          },
+          "company": {
+            "type": "string",
+            "maxLength": 50,
+            "example": "Acme"
+          },
+          "position": {
+            "type": "string",
+            "maxLength": 100,
+            "example": "Backend Developer"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "interview",
+              "declined",
+              "pending"
+            ],
+            "default": "pending"
+          },
+          "jobType": {
+            "type": "string",
+            "enum": [
+              "full-time",
+              "part-time",
+              "remote",
+              "internship"
+            ],
+            "default": "full-time"
+          },
+          "jobLocation": {
+            "type": "string",
+            "maxLength": 100,
+            "example": "Tunis"
+          },
+          "createdBy": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Stats": {
+        "type": "object",
+        "properties": {
+          "defaultStats": {
+            "type": "object",
+            "properties": {
+              "pending": {
+                "type": "integer"
+              },
+              "interview": {
+                "type": "integer"
+              },
+              "declined": {
+                "type": "integer"
+              }
+            }
+          },
+          "monthlyApplications": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "date": {
+                  "type": "string",
+                  "example": "Jul 2023"
+                },
+                "count": {
+                  "type": "integer"
+                }
+              }
+            }
           }
         }
       }
