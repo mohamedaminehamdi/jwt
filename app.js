@@ -5,6 +5,8 @@ const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
 const rateLimit = require('express-rate-limit');
+const swaggerUI = require('swagger-ui-express');
+const openapi = require('./docs/openapi.json');
 const app = express();
 
 const connectDB = require('./db/connect');
@@ -30,6 +32,7 @@ app.use(cors());
 app.use(express.static('./public'));
 app.use(express.json({ limit: '10kb' }));
 
+app.use('/api-docs', swaggerUI.serve, swaggerUI.setup(openapi));
 app.get('/api/v1/health', (req, res) => res.json({ status: 'ok' }));
 app.use('/api/v1/auth', authLimiter, authRouter);
 app.use('/api/v1/jobs', authenticateUser, jobsRouter);
