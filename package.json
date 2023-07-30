@@ -1,6 +1,6 @@
 {
   "name": "jobs",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Jobs API secured with JWT",
   "main": "app.js",
   "scripts": {
