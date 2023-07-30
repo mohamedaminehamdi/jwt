@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jobs API</title>
+<meta name="description" content="A Node.js and MongoDB REST API for tracking job applications, secured with JSON Web Tokens.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231a2238'/%3E%3Ccircle cx='9' cy='16' r='3' fill='%23e0574d'/%3E%3Ccircle cx='16' cy='16' r='3' fill='%23668cf0'/%3E%3Ccircle cx='23' cy='16' r='3' fill='%2338b48f'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Martian+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #eef1f6;
+  --sheet: #ffffff;
+  --ink: #1a2238;
+  --muted: #5b6478;
+  --rule: #c9d0dc;
+  --red: #c4352b;
+  --blue: #2f5bd3;
+  --green: #17866a;
+  --amber: #a86a12;
+  --sans: 'Archivo', system-ui, sans-serif;
+  --mono: 'Martian Mono', ui-monospace, monospace;
+  --wrap: 72rem;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #141a2b;
+    --sheet: #1c2438;
+    --ink: #e6eaf2;
+    --muted: #9aa3b8;
+    --rule: #34405a;
+    --red: #ef6a5f;
+    --blue: #7c9bf5;
+    --green: #45c39c;
+    --amber: #e3a446;
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 1.0625rem;
+  line-height: 1.6;
+}
+a { color: inherit; }
+:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; border-radius: 2px; }
+code, pre { font-family: var(--mono); font-size: 0.8125rem; }
+
+.wrap { max-width: var(--wrap); margin: 0 auto; padding: 0 1.25rem; }
+
+/* nav */
+.nav { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding-block: 1.25rem; }
+.brand { display: flex; align-items: center; gap: 0.6rem; font-weight: 700; font-stretch: 112%; text-decoration: none; }
+.brand-dots { display: inline-flex; gap: 3px; }
+.brand-dots i { width: 7px; height: 7px; border-radius: 50%; }
+.brand-dots i:nth-child(1) { background: var(--red); }
+.brand-dots i:nth-child(2) { background: var(--blue); }
+.brand-dots i:nth-child(3) { background: var(--green); }
+.nav-links { display: flex; gap: 1.25rem; font-size: 0.9375rem; }
+.nav-links a { text-decoration: none; color: var(--muted); }
+.nav-links a:hover { color: var(--ink); }
+
+/* hero */
+.hero { padding-block: 3.5rem 2rem; }
+.hero h1 {
+  margin: 0;
+  max-width: 15ch;
+  font-size: clamp(2.5rem, 7vw, 5.25rem);
+  font-stretch: 125%;
+  font-weight: 800;
+  line-height: 0.98;
+  letter-spacing: -0.02em;
+}
+.lede { max-width: 38rem; margin: 1.75rem 0 0; font-size: 1.1875rem; color: var(--muted); }
+.actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 2rem; }
+.btn {
+  display: inline-block;
+  padding: 0.8rem 1.3rem;
+  border: 2px solid var(--ink);
+  border-radius: 6px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.btn-solid { background: var(--ink); color: var(--paper); }
+.btn-solid:hover { background: transparent; color: var(--ink); }
+.btn-line:hover { background: var(--ink); color: var(--paper); }
+
+/* the token */
+.token {
+  margin: 3.5rem 0 0;
+  background: var(--sheet);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+}
+.token-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  padding: 0.9rem 1.5rem;
+  border-bottom: 1px solid var(--rule);
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+.token-bar code { color: var(--ink); }
+.token-bar .ok { color: var(--green); font-weight: 600; }
+.token-raw {
+  margin: 0;
+  padding: 1.75rem 1.5rem;
+  font-family: var(--mono);
+  font-size: clamp(0.875rem, 1.9vw, 1.375rem);
+  line-height: 1.55;
+  word-break: break-all;
+}
+.seg { border-radius: 3px; transition: background-color 0.15s; animation: ink 0.5s ease-out both; }
+.seg-h { color: var(--red); }
+.seg-p { color: var(--blue); animation-delay: 0.35s; }
+.seg-s { color: var(--green); animation-delay: 0.7s; }
+.dot { color: var(--muted); }
+@keyframes ink { from { opacity: 0; } }
+
+.decode { display: grid; border-top: 1px solid var(--rule); }
+.part { padding: 1.25rem 1.5rem; border-top: 3px solid transparent; transition: background-color 0.15s; }
+.part + .part { border-left: 1px solid var(--rule); }
+.part h3 { margin: 0 0 0.6rem; font-size: 1rem; font-stretch: 112%; }
+.part pre { margin: 0 0 0.75rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+.part p { margin: 0; font-size: 0.9375rem; color: var(--muted); }
+.part-h { border-top-color: var(--red); }
+.part-p { border-top-color: var(--blue); }
+.part-s { border-top-color: var(--green); }
+.part-h h3 { color: var(--red); }
+.part-p h3 { color: var(--blue); }
+.part-s h3 { color: var(--green); }
+
+/* hovering a segment or its decoded part lights up both */
+.token:has(.seg-h:is(:hover, :focus-visible), .part-h:hover) :is(.seg-h, .part-h) { background: color-mix(in srgb, var(--red) 12%, transparent); }
+.token:has(.seg-p:is(:hover, :focus-visible), .part-p:hover) :is(.seg-p, .part-p) { background: color-mix(in srgb, var(--blue) 12%, transparent); }
+.token:has(.seg-s:is(:hover, :focus-visible), .part-s:hover) :is(.seg-s, .part-s) { background: color-mix(in srgb, var(--green) 12%, transparent); }
+
+.token-note { margin: 1rem 0 0; font-size: 0.9375rem; color: var(--muted); }
+.token-note code { color: var(--ink); }
+
+/* sections */
+.section { padding-block: 5rem 0; }
+.section h2 {
+  margin: 0 0 0.75rem;
+  font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+  font-stretch: 118%;
+  font-weight: 750;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+.section-intro { max-width: 40rem; margin: 0 0 2rem; color: var(--muted); }
+.section-intro code { color: var(--ink); }
+
+/* endpoints */
+.table-scroll { overflow-x: auto; }
+.endpoints { width: 100%; min-width: 34rem; border-collapse: collapse; }
+.endpoints th, .endpoints td { padding: 0.7rem 1rem 0.7rem 0; text-align: left; vertical-align: baseline; border-bottom: 1px solid var(--rule); }
+.endpoints tbody th {
+  padding-top: 1.75rem;
+  font-size: 0.9375rem;
+  font-stretch: 112%;
+  color: var(--muted);
+  border-bottom-color: var(--ink);
+}
+.endpoints td:first-child { width: 5.5rem; }
+.endpoints td:nth-child(2) { width: 15rem; white-space: nowrap; }
+.method { font-family: var(--mono); font-size: 0.75rem; font-weight: 600; }
+.m-get { color: var(--green); }
+.m-post { color: var(--blue); }
+.m-patch { color: var(--amber); }
+.m-delete { color: var(--red); }
+
+/* query */
+.query {
+  margin: 0 0 2.5rem;
+  padding: 1.25rem 1.5rem;
+  background: var(--sheet);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  font-size: clamp(0.8125rem, 1.6vw, 1rem);
+  line-height: 1.8;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+.query b { font-weight: 600; color: var(--blue); }
+.params { display: grid; gap: 1.5rem 3rem; margin: 0; }
+.params dt { font-family: var(--mono); font-size: 0.875rem; font-weight: 600; }
+.params dd { margin: 0.35rem 0 0; color: var(--muted); }
+.params dd code { color: var(--ink); }
+.stamps { display: flex; flex-wrap: wrap; gap: 0.9rem; margin-top: 0.75rem; }
+.stamp {
+  padding: 0.15rem 0.7rem;
+  border: 2px solid currentColor;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 2px var(--paper), inset 0 0 0 3px currentColor;
+  font-weight: 800;
+  font-stretch: 125%;
+  font-size: 0.9375rem;
+  transform: rotate(-3deg);
+}
+.stamp:nth-child(2) { transform: rotate(2deg); }
+.stamp:nth-child(3) { transform: rotate(-1deg); }
+.st-pending { color: var(--amber); }
+.st-interview { color: var(--blue); }
+.st-declined { color: var(--red); }
+
+/* run it */
+.steps { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2.5rem; margin: 0; padding: 0; list-style: none; counter-reset: step; }
+.steps li { counter-increment: step; }
+.steps h3 { display: flex; gap: 0.75rem; align-items: baseline; margin: 0 0 0.75rem; font-size: 1.125rem; font-stretch: 112%; }
+.steps h3::before { content: counter(step); font-size: 2rem; font-weight: 800; font-stretch: 125%; line-height: 1; color: var(--blue); }
+.steps p { margin: 0.75rem 0 0; color: var(--muted); font-size: 0.9375rem; }
+.code { position: relative; }
+.code pre {
+  margin: 0;
+  padding: 1rem 4.5rem 1rem 1rem;
+  background: var(--ink);
+  color: var(--paper);
+  border-radius: 8px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.7;
+}
+.copy {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  padding: 0.3rem 0.6rem;
+  border: 1px solid color-mix(in srgb, var(--paper) 35%, transparent);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--paper);
+  font: 600 0.75rem var(--sans);
+  cursor: pointer;
+}
+.copy:hover { background: color-mix(in srgb, var(--paper) 15%, transparent); }
+
+/* inside */
+.inside { display: grid; gap: 2.5rem 3rem; }
+.inside h3 { margin: 0 0 0.75rem; font-size: 1.125rem; font-stretch: 112%; }
+.inside ul { margin: 0; padding: 0; list-style: none; }
+.inside li { padding: 0.6rem 0; border-top: 1px solid var(--rule); }
+.inside li span { color: var(--muted); }
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem 1.5rem;
+  margin-top: 6rem;
+  padding-block: 2rem 3rem;
+  border-top: 1px solid var(--rule);
+  font-size: 0.9375rem;
+  color: var(--muted);
+}
+
+@media (min-width: 760px) {
+  .decode { grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr) minmax(0, 1.2fr); }
+  .params { grid-template-columns: repeat(2, 1fr); }
+  .steps li { display: grid; grid-template-columns: 14rem minmax(0, 40rem); column-gap: 2rem; }
+  .steps h3 { grid-row: span 2; }
+  .inside { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 759px) {
+  .part + .part { border-left: 0; }
+  .nav-links a:first-child { display: none; }
+  .endpoints { min-width: 0; }
+  .endpoints td:first-child { width: 4.25rem; }
+  .endpoints td:nth-child(2) { width: auto; white-space: normal; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .seg { animation: none; }
+  .seg, .part { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<header class="wrap nav">
+  <a class="brand" href="./"><span class="brand-dots" aria-hidden="true"><i></i><i></i><i></i></span>Jobs API</a>
+  <nav class="nav-links" aria-label="Main">
+    <a href="#endpoints">Endpoints</a>
+    <a href="api.html">API reference</a>
+    <a href="https://github.com/mohamedaminehamdi/JWT">GitHub</a>
+  </nav>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <h1>Track every job application behind one token.</h1>
+    <p class="lede">Jobs API is a Node.js and MongoDB REST API for job hunting. You register, log in and get a JSON Web Token. Every request after that carries it, so each person only ever sees their own applications.</p>
+    <div class="actions">
+      <a class="btn btn-solid" href="https://github.com/mohamedaminehamdi/JWT">View the code</a>
+      <a class="btn btn-line" href="api.html">Read the API reference</a>
+    </div>
+
+    <figure class="token" aria-label="A sample token returned by the login endpoint, and what each part contains">
+      <div class="token-bar">
+        <span><code>POST /api/v1/auth/login</code> returns</span>
+        <span class="ok">200 OK</span>
+      </div>
+      <p class="token-raw"><span class="seg seg-h" tabindex="0">eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9</span><span class="dot">.</span><span class="seg seg-p" tabindex="0">eyJ1c2VySWQiOiI2NGJlM2YyYTljMWQ0ZTBiN2E1ZjhjMjEiLCJuYW1lIjoiU2FtIiwiaWF0IjoxNjkwMzAwODAwLCJleHAiOjE2OTI4OTI4MDB9</span><span class="dot">.</span><span class="seg seg-s" tabindex="0">mBFl4iQQ8trJrR_QNazEjJzhAefobr96EsxvANxIAmo</span></p>
+      <div class="decode">
+        <div class="part part-h">
+          <h3>Header</h3>
+          <pre>{ "alg": "HS256",
+  "typ": "JWT" }</pre>
+          <p>How the token is signed.</p>
+        </div>
+        <div class="part part-p">
+          <h3>Payload</h3>
+          <pre>{ "userId": "64be3f2a9c1d4e0b7a5f8c21",
+  "name": "Sam",
+  "iat": 1690300800, "exp": 1692892800 }</pre>
+          <p>Who you are. Every jobs query is filtered by this userId. Tokens expire after 30 days by default.</p>
+        </div>
+        <div class="part part-s">
+          <h3>Signature</h3>
+          <pre>HMACSHA256(
+  header + "." + payload,
+  JWT_SECRET)</pre>
+          <p>Proves the server issued it. Change one character and the request gets a 401.</p>
+        </div>
+      </div>
+    </figure>
+    <p class="token-note">Send it on every jobs request as <code>Authorization: Bearer &lt;token&gt;</code>. Hover a part of the token to see what it holds.</p>
+  </section>
+
+  <section class="section" id="endpoints">
+    <h2>Endpoints</h2>
+    <p class="section-intro">Everything lives under <code>/api/v1</code>. Requests and responses are JSON, and errors come back as <code>{ "msg": "…" }</code> with a matching status code.</p>
+    <div class="table-scroll">
+      <table class="endpoints">
+        <tbody>
+          <tr><th colspan="3" scope="colgroup">Open to everyone</th></tr>
+          <tr><td class="method m-post">POST</td><td><code>/auth/register</code></td><td>Create an account and get a token</td></tr>
+          <tr><td class="method m-post">POST</td><td><code>/auth/login</code></td><td>Log in with email and password, get a token</td></tr>
+          <tr><td class="method m-get">GET</td><td><code>/health</code></td><td>Check that the server is up</td></tr>
+        </tbody>
+        <tbody>
+          <tr><th colspan="3" scope="colgroup">Needs a Bearer token</th></tr>
+          <tr><td class="method m-get">GET</td><td><code>/auth/me</code></td><td>See your profile</td></tr>
+          <tr><td class="method m-patch">PATCH</td><td><code>/auth/me</code></td><td>Change your name, email or location and get a fresh token</td></tr>
+          <tr><td class="method m-get">GET</td><td><code>/jobs</code></td><td>List your applications with filters, search, sorting and pages</td></tr>
+          <tr><td class="method m-post">POST</td><td><code>/jobs</code></td><td>Add an application</td></tr>
+          <tr><td class="method m-get">GET</td><td><code>/jobs/stats</code></td><td>Count applications by status and by month for the last six months</td></tr>
+          <tr><td class="method m-get">GET</td><td><code>/jobs/{id}</code></td><td>Get one application</td></tr>
+          <tr><td class="method m-patch">PATCH</td><td><code>/jobs/{id}</code></td><td>Edit an application</td></tr>
+          <tr><td class="method m-delete">DELETE</td><td><code>/jobs/{id}</code></td><td>Remove an application</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Find the right application</h2>
+    <p class="section-intro">The list endpoint takes query parameters you can combine. It returns <code>{ jobs, totalJobs, numOfPages }</code>.</p>
+    <pre class="query">GET /api/v1/jobs?<b>status</b>=interview&amp;<b>jobType</b>=remote&amp;<b>search</b>=engineer&amp;<b>sort</b>=latest&amp;<b>page</b>=2&amp;<b>limit</b>=10</pre>
+    <dl class="params">
+      <div>
+        <dt>status</dt>
+        <dd>Where the application stands, or <code>all</code>.
+          <div class="stamps" aria-hidden="true"><span class="stamp st-pending">pending</span><span class="stamp st-interview">interview</span><span class="stamp st-declined">declined</span></div>
+        </dd>
+      </div>
+      <div>
+        <dt>jobType</dt>
+        <dd><code>full-time</code>, <code>part-time</code>, <code>remote</code>, <code>internship</code> or <code>all</code>.</dd>
+      </div>
+      <div>
+        <dt>search</dt>
+        <dd>Matches the position, ignoring case. Special characters are treated as plain text.</dd>
+      </div>
+      <div>
+        <dt>sort</dt>
+        <dd><code>latest</code>, <code>oldest</code>, <code>a-z</code> or <code>z-a</code> by position.</dd>
+      </div>
+      <div>
+        <dt>page and limit</dt>
+        <dd>Pages start at 1. The limit is 10 by default and can go up to 100.</dd>
+      </div>
+    </dl>
+  </section>
+
+  <section class="section">
+    <h2>Run it locally</h2>
+    <p class="section-intro">You need Node.js 18 or newer and Docker. The app and the API docs open on port 3000.</p>
+    <ol class="steps">
+      <li>
+        <h3>Get the code</h3>
+        <div class="code"><pre><code>git clone https://github.com/mohamedaminehamdi/JWT.git
+cd JWT && npm install</code></pre><button class="copy" type="button">Copy</button></div>
+      </li>
+      <li>
+        <h3>Set a secret</h3>
+        <div class="code"><pre><code>cp .env.example .env</code></pre><button class="copy" type="button">Copy</button></div>
+        <p>Then put a long random string in <code>JWT_SECRET</code>.</p>
+      </li>
+      <li>
+        <h3>Start it</h3>
+        <div class="code"><pre><code>docker compose up --build</code></pre><button class="copy" type="button">Copy</button></div>
+        <p>Open localhost:3000 for the web app and localhost:3000/api-docs for Swagger. Run the tests with <code>npm test</code>.</p>
+      </li>
+    </ol>
+  </section>
+
+  <section class="section">
+    <h2>What's inside</h2>
+    <div class="inside">
+      <div>
+        <h3>Security</h3>
+        <ul>
+          <li>Passwords hashed with bcrypt <span>and never returned</span></li>
+          <li>Login and register limited <span>to 100 requests per 15 minutes</span></li>
+          <li>Helmet headers and CORS</li>
+          <li>Query operators stripped <span>so <code>{"$ne": null}</code> logins fail</span></li>
+          <li>Request bodies capped <span>at 10 kB</span></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Tooling</h3>
+        <ul>
+          <li>36 tests <span>with the built-in node:test runner against real MongoDB</span></li>
+          <li>GitHub Actions <span>on Node 18 and 20</span></li>
+          <li>Dockerfile and Compose <span>with MongoDB 6</span></li>
+          <li>OpenAPI 3 spec <span>served with Swagger UI</span></li>
+          <li>Plain JavaScript web app <span>with no build step</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap footer">
+  <span>Jobs API is MIT licensed. Built with Node.js, Express, MongoDB and jsonwebtoken.</span>
+  <a href="https://github.com/mohamedaminehamdi/JWT">Source on GitHub</a>
+</footer>
+
+<script>
+document.querySelectorAll('.copy').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    var text = btn.previousElementSibling.textContent;
+    navigator.clipboard.writeText(text).then(function () {
+      btn.textContent = 'Copied';
+      setTimeout(function () { btn.textContent = 'Copy'; }, 1500);
+    });
+  });
+});
+</script>
+</body>
+</html>

@@ -6,6 +6,8 @@ delete, search, filter, sort, paginate and view stats.
 
 Built with Node.js, Express, MongoDB (Mongoose) and JWT.
 
+Project page: https://mohamedaminehamdi.github.io/jwt/
+
 ## Features
 
 - Register / login with bcrypt-hashed passwords and JWT auth
